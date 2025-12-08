@@ -1,5 +1,5 @@
 import Link from "next/link";
-import {IconBell, IconUser} from "@/src/icons";
+import {IconBell, IconUser} from "@/icons";
 
 export function Header() {
     const menuItems = [
