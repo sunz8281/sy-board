@@ -11,13 +11,16 @@ const meta: Meta<typeof Button> = {
   argTypes: {
     variant: {
       control: "select",
-      options: ["default", "destructive", "outline", "secondary", "ghost", "link"],
+      options: ["primary", "grayscale", "outlined"],
     },
     size: {
       control: "select",
-      options: ["default", "sm", "lg", "icon"],
+      options: ["big", "small"],
     },
     disabled: {
+      control: "boolean",
+    },
+    rounded: {
       control: "boolean",
     },
   },
@@ -32,52 +35,45 @@ export const Default: Story = {
   },
 };
 
-export const Destructive: Story = {
+export const Primary: Story = {
   args: {
-    variant: "destructive",
-    children: "Delete",
+    variant: "primary",
+    children: "Primary",
   },
 };
 
 export const Outline: Story = {
   args: {
-    variant: "outline",
-    children: "Outline",
+    variant: "outlined",
+    children: "Outlined",
   },
 };
 
-export const Secondary: Story = {
+export const GrayScale: Story = {
   args: {
-    variant: "secondary",
-    children: "Secondary",
-  },
-};
-
-export const Ghost: Story = {
-  args: {
-    variant: "ghost",
-    children: "Ghost",
-  },
-};
-
-export const Link: Story = {
-  args: {
-    variant: "link",
-    children: "Link",
+    variant: "grayscale",
+    children: "GrayScale",
   },
 };
 
 export const Small: Story = {
   args: {
-    size: "sm",
+    size: "small",
     children: "Small",
   },
 };
 
 export const Large: Story = {
   args: {
-    size: "lg",
-    children: "Large",
+    size: "big",
+    children: "Big",
+  },
+};
+
+export const RoundedFalse: Story = {
+  args: {
+    rounded: false,
+    children: "Square",
   },
 };
 
