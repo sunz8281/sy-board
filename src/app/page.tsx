@@ -1,88 +1,44 @@
+import { Header } from "@comp/board/Header";
+import { SidebarProfile } from "@comp/board/SidebarProfile";
+import { SidebarMenu } from "@comp/board/SidebarMenu";
+import { CategoryList } from "@comp/board/CategoryList";
+
 export default function Home() {
+  const navItems = [
+    { label: "게시판", href: "#", active: true },
+    { label: "시간표", href: "#", active: false },
+    { label: "강의평가", href: "#", active: false },
+    { label: "학점계산기", href: "#", active: false },
+    { label: "친구", href: "#", active: false },
+    { label: "책방", href: "#", active: false },
+    { label: "캠퍼스맵", href: "#", active: false },
+  ];
+
+  const quickMenus = [
+    { label: "내 글 모음" },
+    { label: "댓글 단 글" },
+    { label: "내 북마크" },
+  ];
+
+  const categories = [
+    { label: "전체게시판" },
+    { label: "자유게시판", active: true },
+    { label: "비밀게시판" },
+    { label: "졸업생게시판" },
+    { label: "새내기게시판" },
+  ];
+
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
-      <header className="h-[60px] bg-black">
-        <div className="mx-auto flex h-full w-full max-w-[1440px] items-center justify-between px-8">
-          <div className="flex items-center gap-8">
-            <div className="flex items-center gap-2">
-              <div className="h-10 w-10 rounded-full bg-white" />
-              <span className="text-white">sy-board</span>
-            </div>
-            <nav className="flex items-center gap-6 text-sm">
-              <a className="text-primary font-semibold" href="#">
-                게시판
-              </a>
-              <a className="text-gray-400" href="#">
-                시간표
-              </a>
-              <a className="text-gray-400" href="#">
-                강의평가
-              </a>
-              <a className="text-gray-400" href="#">
-                학점계산기
-              </a>
-              <a className="text-gray-400" href="#">
-                친구
-              </a>
-              <a className="text-gray-400" href="#">
-                책방
-              </a>
-              <a className="text-gray-400" href="#">
-                캠퍼스맵
-              </a>
-            </nav>
-          </div>
-          <div className="flex items-center gap-3 text-white">
-            <div className="h-5 w-5 rounded-full bg-white/30" />
-            <div className="h-6 w-6 rounded-full bg-white/30" />
-          </div>
-        </div>
-      </header>
+      <Header items={navItems} />
 
       <main className="mx-auto flex w-full max-w-[1440px] gap-8 px-8 py-8">
         <aside className="flex w-[206px] shrink-0 flex-col gap-4">
-          <div className="rounded-[16px] border border-gray-200 bg-white p-5">
-            <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gray-200" />
-            <div className="text-center">
-              <div className="text-sm font-bold text-black">박선영</div>
-              <div className="mt-1 text-[12px] text-gray-600">2학년 / 소프트웨어개발과</div>
-            </div>
-            <div className="mt-4 flex items-center gap-2">
-              <button className="h-8 flex-1 rounded-[4px] bg-gray-100 text-[12px] font-medium text-gray-600">
-                내 정보
-              </button>
-              <button className="h-8 flex-1 rounded-[4px] border border-gray-300 text-[12px] font-medium text-gray-600">
-                로그아웃
-              </button>
-            </div>
-          </div>
+          <SidebarProfile name="박선영" info="2학년 / 소프트웨어개발과" />
 
-          <div className="rounded-[16px] border border-gray-200 bg-white">
-            <ul className="divide-y divide-gray-100">
-              <li className="flex items-center gap-2 px-4 py-3 text-sm text-gray-600">
-                <span className="h-6 w-6 rounded bg-gray-200" />
-                내 글 모음
-              </li>
-              <li className="flex items-center gap-2 px-4 py-3 text-sm text-gray-600">
-                <span className="h-6 w-6 rounded bg-gray-200" />
-                댓글 단 글
-              </li>
-              <li className="flex items-center gap-2 px-4 py-3 text-sm text-gray-600">
-                <span className="h-6 w-6 rounded bg-gray-200" />
-                내 북마크
-              </li>
-            </ul>
-          </div>
+          <SidebarMenu items={quickMenus} />
 
-          <div className="rounded-[16px] border border-gray-200 bg-white p-4">
-            <div className="space-y-3 text-sm">
-              <div className="text-gray-600">전체게시판</div>
-              <div className="font-semibold text-primary">자유게시판</div>
-              <div className="text-gray-600">비밀게시판</div>
-              <div className="text-gray-600">졸업생게시판</div>
-              <div className="text-gray-600">새내기게시판</div>
-            </div>
-          </div>
+          <CategoryList categories={categories} />
 
           <button className="h-[50px] rounded-[16px] bg-primary text-base font-semibold text-white">
             새 글쓰기
