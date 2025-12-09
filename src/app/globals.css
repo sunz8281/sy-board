@@ -1,15 +1,55 @@
 @import "tailwindcss";
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+@source "./src/**/*.{ts,tsx,mdx}";
+@source "./.storybook/**/*.{ts,tsx,js,jsx,mdx}";
+
+@theme {
+    --color-primary: #ff4545;
+    --color-blue: #2b6bf2;
+    --color-gray-50: #f7f7f7;
+    --color-gray-100: #f2f2f2;
+    --color-gray-200: #e9e9e9;
+    --color-gray-300: #e2e2e2;
+    --color-gray-400: #d9d9d9;
+    --color-gray-500: #d1d1d1;
+    --color-gray-600: #8c8c8c;
+    --color-gray-700: #737373;
+    --color-gray-800: #595959;
+    --color-gray-900: #1e1e1e;
+    --color-black: #000000;
+    --color-white: #ffffff;
+
+    --font-sans: "Pretendard", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+
+    --text-display: 28px;
+    --leading-display: 34px;
+    --font-weight-display: 700;
+    --text-headline: 22px;
+    --leading-headline: 27px;
+    --font-weight-headline: 700;
+    --text-title: 20px;
+    --leading-title: 24px;
+    --font-weight-title: 700;
+    --text-body: 16px;
+    --leading-body: 19px;
+    --font-weight-body: 600;
+    --text-label: 15px;
+    --leading-label: 18px;
+    --font-weight-label: 600;
+    --text-body-sm: 14px;
+    --leading-body-sm: 17px;
+    --font-weight-body-sm: 400;
+    --text-caption: 12px;
+    --leading-caption: 15px;
+    --font-weight-caption: 500;
+
+    --radius-4: 4px;
+    --radius-12: 12px;
+    --radius-16: 16px;
 }
 
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
