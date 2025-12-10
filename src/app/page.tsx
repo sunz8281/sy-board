@@ -2,6 +2,9 @@ import { Header } from "@comp/board/Header";
 import { SidebarProfile } from "@comp/board/SidebarProfile";
 import { SidebarMenu } from "@comp/board/SidebarMenu";
 import { CategoryList } from "@comp/board/CategoryList";
+import { PostCard } from "@comp/board/PostCard";
+import { HotPostItem } from "@comp/board/HotPostItem";
+import Input from "@comp/common/Input/Input";
 
 export default function Home() {
   const navItems = [
@@ -28,6 +31,50 @@ export default function Home() {
     { label: "새내기게시판" },
   ];
 
+  const posts = [
+    {
+      title: "교수님 오늘 수업 오시나요?  [1]",
+      preview: "1교시 수업인데 교수님 안 오시면 알려주세요",
+      category: "자유게시판",
+      meta: "익명    30분 전",
+      stats: "👁 567   👍 45   💬 1",
+    },
+    {
+      title: "교수님 오늘 수업 오시나요?  [1]",
+      preview: "1교시 수업인데 교수님 안 오시면 알려주세요",
+      category: "자유게시판",
+      meta: "익명    30분 전",
+      stats: "👁 567   👍 45   💬 1",
+    },
+    {
+      title: "교수님 오늘 수업 오시나요?  [1]",
+      preview: "1교시 수업인데 교수님 안 오시면 알려주세요",
+      category: "자유게시판",
+      meta: "익명    30분 전",
+      stats: "👁 567   👍 45   💬 1",
+    },
+    {
+      title: "교수님 오늘 수업 오시나요?  [1]",
+      preview: "1교시 수업인데 교수님 안 오시면 알려주세요",
+      category: "자유게시판",
+      meta: "익명    30분 전",
+      stats: "👁 567   👍 45   💬 1",
+    },
+    {
+      title: "교수님 오늘 수업 오시나요?  [1]",
+      preview: "1교시 수업인데 교수님 안 오시면 알려주세요",
+      category: "자유게시판",
+      meta: "익명    30분 전",
+      stats: "👁 567   👍 45   💬 1",
+    },
+  ];
+
+  const hotPosts = [
+    { title: "취업이 안될것만 같다", comments: 47, date: "2025. 12.24." },
+    { title: "취업이 안될것만 같다", comments: 47, date: "2025. 12.24." },
+    { title: "취업이 안될것만 같다", comments: 47, date: "2025. 12.24." },
+  ];
+
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
       <Header items={navItems} />
@@ -49,22 +96,23 @@ export default function Home() {
           <div className="flex items-center justify-between">
             <div>
               <button className="text-[14px] font-medium text-gray-600">← 목록으로</button>
-              <h1 className="text-[28px] font-bold leading-[34px] text-black">새 글쓰기</h1>
+              <h1 className="text-[28px] font-bold leading-[34px] text-black">자유게시판</h1>
             </div>
           </div>
 
           <div className="flex flex-col gap-4">
-            <div className="rounded-[16px] border border-gray-200 bg-white p-5 shadow-sm">
-              <div className="h-[116px] w-full rounded-[8px] border border-dashed border-gray-200 bg-gray-50" />
-            </div>
+            {posts.map((post, idx) => (
+              <PostCard key={`${post.title}-${idx}`} {...post} />
+            ))}
           </div>
         </section>
 
         <aside className="flex w-[296px] shrink-0 flex-col gap-4">
-          <div className="flex h-[43px] items-center rounded-[4px] border border-gray-300 bg-white px-3">
-            <span className="text-[14px] text-gray-400">자유 게시판의 글을 검색하세요</span>
-            <span className="ml-auto text-[16px]">🔍</span>
-          </div>
+          <Input
+            className="h-[43px] py-[12px]"
+            placeholder="자유 게시판의 글을 검색하세요"
+            rightIcon={<span aria-hidden>🔍</span>}
+          />
 
           <div className="rounded-[16px] border border-gray-300 bg-white p-4">
             <div className="text-[16px] font-semibold text-blue">📈 실시간 인기 글</div>
@@ -81,27 +129,9 @@ export default function Home() {
               <button className="text-[12px] text-gray-500">전체 &gt;</button>
             </div>
             <div className="mt-3 space-y-3">
-              <div className="rounded-[8px] border border-gray-100 p-3">
-                <div className="text-[14px] font-semibold text-gray-900">취업이 안될것만 같다</div>
-                <div className="mt-1 flex items-center justify-between text-[12px] text-gray-500">
-                  <span>댓글 47</span>
-                  <span>2025. 12.24.</span>
-                </div>
-              </div>
-              <div className="rounded-[8px] border border-gray-100 p-3">
-                <div className="text-[14px] font-semibold text-gray-900">취업이 안될것만 같다</div>
-                <div className="mt-1 flex items-center justify-between text-[12px] text-gray-500">
-                  <span>댓글 47</span>
-                  <span>2025. 12.24.</span>
-                </div>
-              </div>
-              <div className="rounded-[8px] border border-gray-100 p-3">
-                <div className="text-[14px] font-semibold text-gray-900">취업이 안될것만 같다</div>
-                <div className="mt-1 flex items-center justify-between text-[12px] text-gray-500">
-                  <span>댓글 47</span>
-                  <span>2025. 12.24.</span>
-                </div>
-              </div>
+              {hotPosts.map((hot) => (
+                <HotPostItem key={`${hot.title}-${hot.date}-${hot.comments}`} {...hot} />
+              ))}
             </div>
           </div>
         </aside>
