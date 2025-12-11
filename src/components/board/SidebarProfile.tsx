@@ -1,3 +1,5 @@
+import { Button } from "@comp/common/Button/Button";
+
 type ProfileProps = {
   name: string;
   info: string;
@@ -11,13 +13,13 @@ export function SidebarProfile({ name, info }: ProfileProps) {
         <div className="text-sm font-bold text-black">{name}</div>
         <div className="mt-1 text-[12px] text-gray-600">{info}</div>
       </div>
-      <div className="mt-4 flex items-center gap-2">
-        <button className="h-8 flex-1 rounded-[4px] bg-gray-100 text-[12px] font-medium text-gray-600">
+      <div className="mt-4 grid grid-cols-2 gap-2">
+        <Button variant="grayscale" size="small" rounded={false} className="w-full">
           내 정보
-        </button>
-        <button className="h-8 flex-1 rounded-[4px] border border-gray-300 text-[12px] font-medium text-gray-600">
+        </Button>
+        <Button variant="outlined" size="small" rounded={false} className="w-full">
           로그아웃
-        </button>
+        </Button>
       </div>
     </div>
   );

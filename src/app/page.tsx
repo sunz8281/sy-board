@@ -5,6 +5,7 @@ import { CategoryList } from "@comp/board/CategoryList";
 import { PostCard } from "@comp/board/PostCard";
 import { HotPostItem } from "@comp/board/HotPostItem";
 import Input from "@comp/common/Input/Input";
+import { Button } from "@comp/common/Button/Button";
 
 export default function Home() {
   const navItems = [
@@ -87,15 +88,17 @@ export default function Home() {
 
           <CategoryList categories={categories} />
 
-          <button className="h-[50px] rounded-[16px] bg-primary text-base font-semibold text-white">
+          <Button variant="primary" size="big" rounded className="w-full">
             새 글쓰기
-          </button>
+          </Button>
         </aside>
 
         <section className="flex min-w-0 flex-1 flex-col gap-4">
           <div className="flex items-center justify-between">
             <div>
-              <button className="text-[14px] font-medium text-gray-600">← 목록으로</button>
+              <Button variant="grayscale" size="small" rounded={false} className="px-3">
+                ← 목록으로
+              </Button>
               <h1 className="text-[28px] font-bold leading-[34px] text-black">자유게시판</h1>
             </div>
           </div>
