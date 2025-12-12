@@ -1,15 +1,12 @@
+'use client';
+
 import { PostCard } from "@comp/board/PostCard";
-import Header from "@comp/common/AppLayout/Header/Header";
-import {AppLayout} from "@comp/common/AppLayout/AppLayout";
+import { AppLayout } from "@comp/common/AppLayout/AppLayout";
+import { useParams } from "next/navigation";
 
-interface BoardPageProps {
-    params?: {
-        id?: number;
-    }
-}
-
-export default function BoardPage({ params }: BoardPageProps) {
-  const id = params?.id ?? 0;
+export default function BoardPage() {
+  const params = useParams<{ id: string }>();
+  const activeCategory = Number.isNaN(Number(params.id)) ? 0 : Number(params.id);
 
   const posts = [
     {
@@ -70,7 +67,7 @@ export default function BoardPage({ params }: BoardPageProps) {
   ];
 
   return (
-    <AppLayout header leftSidebar rightSidebar>
+    <AppLayout header leftSidebar rightSidebar activeCategory={activeCategory}>
         <section className="flex min-w-[400px] flex-1 flex-col gap-4">
             {posts.map((post, idx) => (
                 <PostCard

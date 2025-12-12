@@ -19,7 +19,7 @@ const navItems: NavItem[] = [
     { label: "캠퍼스맵", href: "/map"},
 ];
 
-export function Header() {
+export const Header = () => {
   const pathname = usePathname();
 
   const isActive = (href: string) => {
@@ -61,3 +61,5 @@ export function Header() {
     </header>
   );
 }
+
+export default Header;
