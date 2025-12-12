@@ -12,22 +12,6 @@ type SearchParams = {
   category?: string;
 };
 
-function formatRelativeTime(date: Date) {
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const minutes = Math.floor(diffMs / (1000 * 60));
-  if (minutes < 1) return "방금 전";
-  if (minutes < 60) return `${minutes}분 전`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}시간 전`;
-  const days = Math.floor(hours / 24);
-  if (days < 30) return `${days}일 전`;
-  const months = Math.floor(days / 30);
-  if (months < 12) return `${months}개월 전`;
-  const years = Math.floor(months / 12);
-  return `${years}년 전`;
-}
-
 function formatDate(date: Date) {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, "0");
@@ -37,16 +21,6 @@ function formatDate(date: Date) {
 
 export default function BoardPage({ searchParams }: { searchParams: SearchParams }) {
   const selectedCategory = searchParams?.category ?? "자유게시판";
-
-  const navItems = [
-    { label: "게시판", href: "/board", active: true },
-    { label: "시간표", href: "/timetable", active: false },
-    { label: "강의평가", href: "/reviews", active: false },
-    { label: "학점계산기", href: "/calculator", active: false },
-    { label: "친구", href: "/friends", active: false },
-    { label: "책방", href: "/books", active: false },
-    { label: "캠퍼스맵", href: "/map", active: false },
-  ];
 
   const quickMenus = [
     { label: "내 글 모음", icon: <IconUser className="h-5 w-5 text-gray-600" /> },
@@ -74,7 +48,7 @@ export default function BoardPage({ searchParams }: { searchParams: SearchParams
       preview: "마감 시간 착오 없도록 다시 확인 바랍니다",
       category: "자유게시판",
       author: "익명",
-      postedAt: new Date(Date.now() - 1000 * 60 * 40),
+      postedAt: new Date(),
       views: 432,
       likes: 32,
       favorites: 3,
@@ -85,7 +59,7 @@ export default function BoardPage({ searchParams }: { searchParams: SearchParams
       preview: "시간 맞춰서 참여 가능한 분들 댓글 남겨주세요",
       category: "자유게시판",
       author: "익명",
-      postedAt: new Date(Date.now() - 1000 * 60 * 60 * 3),
+      postedAt: new Date(),
       views: 210,
       likes: 12,
       favorites: 0,
@@ -96,7 +70,7 @@ export default function BoardPage({ searchParams }: { searchParams: SearchParams
       preview: "효율적인 공부법을 정리해봤습니다",
       category: "자유게시판",
       author: "익명",
-      postedAt: new Date(Date.now() - 1000 * 60 * 60 * 25),
+      postedAt: new Date(),
       views: 789,
       likes: 67,
       favorites: 9,
@@ -107,7 +81,7 @@ export default function BoardPage({ searchParams }: { searchParams: SearchParams
       preview: "신입 멤버를 모집합니다. 관심 있는 분들 신청해주세요",
       category: "자유게시판",
       author: "익명",
-      postedAt: new Date(Date.now() - 1000 * 60 * 60 * 80),
+      postedAt: new Date(),
       views: 156,
       likes: 18,
       favorites: 4,
@@ -122,7 +96,7 @@ export default function BoardPage({ searchParams }: { searchParams: SearchParams
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
-      <Header items={navItems} />
+      <Header />
 
       <main className="mx-auto flex w-full max-w-[1440px] gap-8 px-8 py-8">
         <aside className="flex w-[206px] shrink-0 flex-col gap-4">
@@ -156,7 +130,7 @@ export default function BoardPage({ searchParams }: { searchParams: SearchParams
                 preview={post.preview}
                 category={post.category}
                 author={post.author}
-                postedAt={formatRelativeTime(post.postedAt)}
+                postedAt={post.postedAt.toString()}
                 views={post.views}
                 likes={post.likes}
                 favorites={post.favorites}

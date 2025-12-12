@@ -1,17 +1,35 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { IconBell, IconUser } from "@/icons";
 
 type NavItem = {
   label: string;
   href: string;
-  active?: boolean;
 };
 
-type HeaderProps = {
-  items: NavItem[];
-};
+const navItems: NavItem[] = [
+    { label: "게시판", href: "/board"},
+    { label: "시간표", href: "/timetable"},
+    { label: "강의평가", href: "/reviews"},
+    { label: "학점계산기", href: "/calculator"},
+    { label: "친구", href: "/friends"},
+    { label: "책방", href: "/books"},
+    { label: "캠퍼스맵", href: "/map"},
+];
 
-export function Header({ items }: HeaderProps) {
+export function Header() {
+  const pathname = usePathname();
+
+  const isActive = (href: string) => {
+    if (href === "/") {
+      return pathname === "/";
+    }
+
+    return pathname === href || pathname.startsWith(`${href}/`);
+  };
+
   return (
     <header className="h-[60px] bg-black">
       <div className="mx-auto flex h-full w-full max-w-[1440px] items-center justify-between px-8">
@@ -21,11 +39,11 @@ export function Header({ items }: HeaderProps) {
             <span className="text-white">sy-board</span>
           </Link>
           <nav className="flex items-center gap-6 text-sm">
-            {items.map((item) => (
+            {navItems.map((item) => (
               <Link
                 key={item.label}
                 href={item.href}
-                className={item.active ? "font-semibold text-primary" : "text-gray-400"}
+                className={isActive(item.href) ? "font-semibold text-primary" : "text-gray-400"}
               >
                 {item.label}
               </Link>

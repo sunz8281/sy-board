@@ -1,11 +1,23 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { IconBell, IconUser } from "@/icons";
 
 export function Header() {
   const menuItems = [
-    { label: "게시판", href: "/", active: true },
+    { label: "게시판", href: "/" },
     { label: "시간표", href: "/timetable" },
   ];
+  const pathname = usePathname();
+
+  const isActive = (href: string) => {
+    if (href === "/") {
+      return pathname === "/";
+    }
+
+    return pathname === href || pathname.startsWith(`${href}/`);
+  };
 
   return (
     <header className="bg-white border-b border-gray-200">
@@ -21,7 +33,7 @@ export function Header() {
                 <Link
                   key={item.label}
                   href={item.href}
-                  className={item.active ? "text-red-500" : "text-gray-700 hover:text-gray-900"}
+                  className={isActive(item.href) ? "text-red-500" : "text-gray-700 hover:text-gray-900"}
                 >
                   {item.label}
                 </Link>
