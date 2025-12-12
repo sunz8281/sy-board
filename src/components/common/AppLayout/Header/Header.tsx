@@ -36,7 +36,6 @@ export function Header() {
         <div className="flex items-center gap-8">
           <Link href="#" className="flex items-center gap-2">
             <div className="h-10 w-10 rounded-full bg-white" />
-            <span className="text-white">sy-board</span>
           </Link>
           <nav className="flex items-center gap-6 text-sm">
             {navItems.map((item) => (
