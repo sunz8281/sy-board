@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import Input from "@comp/common/Input/Input";
 import { Button } from "@comp/common/Button/Button";
 
@@ -13,26 +13,43 @@ type PostEditorProps = {
   initialContent?: string;
 };
 
-const categoryOptions = [
-  { id: 0, label: "전체게시판" },
-  { id: 1, label: "자유게시판" },
-  { id: 2, label: "비밀게시판" },
-  { id: 3, label: "졸업생게시판" },
-  { id: 4, label: "새내기게시판" },
-];
-
 export function PostEditor({ mode, activeCategory = 0, initialContent, initialTitle }: PostEditorProps) {
   const [title, setTitle] = useState(initialTitle ?? "");
   const [content, setContent] = useState(initialContent ?? "");
   const [categoryId, setCategoryId] = useState<number>(activeCategory);
+  const [categories, setCategories] = useState<Array<{ id: number; name: string }>>([]);
+  const [catError, setCatError] = useState<string | null>(null);
+  const [catLoading, setCatLoading] = useState(false);
 
   const heading = mode === "edit" ? "글 수정" : "새 글쓰기";
   const submitLabel = mode === "edit" ? "수정하기" : "새 글쓰기";
 
   const selectedCategoryLabel = useMemo(() => {
-    const found = categoryOptions.find((item) => item.id === categoryId);
-    return found?.label ?? "전체게시판";
-  }, [categoryId]);
+    const found = categories.find((item) => item.id === categoryId);
+    return found?.name ?? "전체게시판";
+  }, [categories, categoryId]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const fetchCategories = async () => {
+      setCatLoading(true);
+      setCatError(null);
+      try {
+        const res = await fetch("/api/categories", { signal: controller.signal });
+        if (!res.ok) throw new Error(`카테고리를 불러오지 못했습니다. (${res.status})`);
+        const data = await res.json();
+        setCategories(data);
+      } catch (err: any) {
+        if (err.name === "AbortError") return;
+        setCatError(err.message ?? "카테고리를 불러오지 못했습니다.");
+      } finally {
+        setCatLoading(false);
+      }
+    };
+
+    fetchCategories();
+    return () => controller.abort();
+  }, []);
 
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault();
@@ -78,9 +95,10 @@ export function PostEditor({ mode, activeCategory = 0, initialContent, initialTi
               value={categoryId}
               onChange={(e) => setCategoryId(Number(e.target.value))}
             >
-              {categoryOptions.map((option) => (
+              <option value={0}>전체게시판</option>
+              {categories.map((option) => (
                 <option key={option.id} value={option.id}>
-                  {option.label}
+                  {option.name}
                 </option>
               ))}
             </select>
@@ -88,7 +106,13 @@ export function PostEditor({ mode, activeCategory = 0, initialContent, initialTi
               ⌵
             </span>
           </div>
-          <p className="text-[12px] text-gray-500">현재 선택: {selectedCategoryLabel}</p>
+          {catLoading ? (
+            <p className="text-[12px] text-gray-500">카테고리를 불러오는 중...</p>
+          ) : catError ? (
+            <p className="text-[12px] text-primary">{catError}</p>
+          ) : (
+            <p className="text-[12px] text-gray-500">현재 선택: {selectedCategoryLabel}</p>
+          )}
         </div>
 
         <div className="space-y-2">
