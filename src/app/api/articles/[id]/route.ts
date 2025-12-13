@@ -8,7 +8,12 @@ type Params = {
 };
 
 export async function GET(_request: NextRequest, { params }: Params) {
-  const articleId = Number(params.id);
+  const idParam = params?.id;
+  if (!idParam) {
+    return NextResponse.json({ message: "id는 필수입니다." }, { status: 400 });
+  }
+
+  const articleId = Number.parseInt(idParam, 10);
   if (Number.isNaN(articleId)) {
     return NextResponse.json({ message: "id는 숫자여야 합니다." }, { status: 400 });
   }
@@ -94,7 +99,12 @@ export async function GET(_request: NextRequest, { params }: Params) {
 }
 
 export async function PATCH(request: NextRequest, { params }: Params) {
-  const articleId = Number(params.id);
+  const idParam = params?.id;
+  if (!idParam) {
+    return NextResponse.json({ message: "id는 필수입니다." }, { status: 400 });
+  }
+
+  const articleId = Number.parseInt(idParam, 10);
   if (Number.isNaN(articleId)) {
     return NextResponse.json({ message: "id는 숫자여야 합니다." }, { status: 400 });
   }
