@@ -1,15 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-type Params = { params: Promise<{ id: string }> | { id: string } };
-
-const resolveId = async (params?: Params["params"]) => {
-  const resolved = typeof (params as any)?.then === "function" ? await (params as any) : params;
-  return resolved && typeof resolved === "object" && "id" in resolved ? (resolved as { id?: string }).id : undefined;
-};
+type Params = { params: Promise<{ id: string }>};
 
 export async function PATCH(request: NextRequest, { params }: Params) {
-  const idParam = await resolveId(params);
+  const idParam = (await params).id;
   if (!idParam) {
     return NextResponse.json({ message: "id는 필수입니다." }, { status: 400 });
   }
@@ -89,7 +84,7 @@ const hardDeleteOrphans = async (commentId: number) => {
 };
 
 export async function DELETE(request: NextRequest, { params }: Params) {
-  const idParam = await resolveId(params);
+  const idParam = (await params).id;
   if (!idParam) {
     return NextResponse.json({ message: "id는 필수입니다." }, { status: 400 });
   }
