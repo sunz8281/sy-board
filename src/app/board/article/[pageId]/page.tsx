@@ -45,6 +45,8 @@ export default function BoardDetailPage() {
   const [editingText, setEditingText] = useState<string>("");
   const [commentActionError, setCommentActionError] = useState<string | null>(null);
   const [deletingCommentId, setDeletingCommentId] = useState<number | null>(null);
+  const [replyingToId, setReplyingToId] = useState<number | null>(null);
+  const [replyText, setReplyText] = useState<string>("");
 
   const loadArticle = async (signal?: AbortSignal) => {
     setLoading(true);
@@ -95,6 +97,38 @@ export default function BoardDetailPage() {
       await loadArticle();
     } catch (err: any) {
       setCommentActionError(err.message ?? "댓글 등록에 실패했습니다.");
+    }
+  };
+
+  const startReply = (commentId: number) => {
+    setReplyingToId(commentId);
+    setReplyText("");
+    setCommentActionError(null);
+    setEditingCommentId(null);
+    setEditingText("");
+  };
+
+  const handleSubmitReply = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!replyingToId || !replyText.trim()) return;
+    try {
+      setCommentActionError(null);
+      const res = await fetch("/api/comments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          content: replyText,
+          articleId: article?.id,
+          authorId: 1, // TODO: 실제 로그인 사용자 ID로 대체
+          parentId: replyingToId,
+        }),
+      });
+      if (!res.ok) throw new Error("대댓글 등록에 실패했습니다.");
+      setReplyingToId(null);
+      setReplyText("");
+      await loadArticle();
+    } catch (err: any) {
+      setCommentActionError(err.message ?? "대댓글 등록에 실패했습니다.");
     }
   };
 
@@ -188,6 +222,14 @@ export default function BoardDetailPage() {
               >
                 {deletingCommentId === comment.id ? "삭제중..." : "삭제"}
               </Button>
+              <Button
+                size="small"
+                variant="outlined"
+                rounded
+                onClick={() => startReply(comment.id)}
+              >
+                답글
+              </Button>
             </div>
           )}
         </div>
@@ -216,6 +258,30 @@ export default function BoardDetailPage() {
           </form>
         ) : (
           <p className="mt-2 text-sm text-gray-800">{comment.content ?? "(삭제된 댓글입니다)"}</p>
+        )}
+        {replyingToId === comment.id && (
+          <form onSubmit={handleSubmitReply} className="mt-2 space-y-2">
+            <textarea
+              className="w-full rounded border border-gray-200 p-2 text-sm"
+              value={replyText}
+              onChange={(e) => setReplyText(e.target.value)}
+            />
+            <div className="flex gap-2">
+              <Button size="small" type="submit">
+                등록
+              </Button>
+              <Button
+                size="small"
+                variant="outlined"
+                onClick={() => {
+                  setReplyingToId(null);
+                  setReplyText("");
+                }}
+              >
+                취소
+              </Button>
+            </div>
+          </form>
         )}
         {comment.children?.length ? (
           <div className="mt-3 space-y-2 border-l border-gray-200 pl-3">
