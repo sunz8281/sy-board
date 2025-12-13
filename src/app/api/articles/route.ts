@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
         updatedAt: true,
         category: { select: { id: true, name: true } },
         author: { select: { name: true } },
-        _count: { select: { comments: true } },
+        _count: { select: { comments: true, likes: true, bookmarks: true } },
       },
     });
 
@@ -33,6 +33,8 @@ export async function GET(request: NextRequest) {
       ...article,
       author: article.author?.name ?? null,
       commentsCount: article._count?.comments ?? 0,
+      likesCount: article._count?.likes ?? 0,
+      bookmarksCount: article._count?.bookmarks ?? 0,
     }));
 
     const sanitized = flattened.map(({ _count, ...rest }) => rest);

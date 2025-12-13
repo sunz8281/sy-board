@@ -35,6 +35,8 @@ model Article {
   author     User      @relation(fields: [authorId], references: [id])
   authorId   Int
   comments   Comment[]
+  likes      ArticleLike[]
+  bookmarks  ArticleBookmark[]
 
   @@index([categoryId])
   @@index([authorId])
@@ -55,4 +57,30 @@ model Comment {
   @@index([articleId])
   @@index([authorId])
   @@index([parentId])
+}
+
+model ArticleLike {
+  id         Int      @id @default(autoincrement())
+  createdAt  DateTime @default(now())
+  article    Article  @relation(fields: [articleId], references: [id])
+  articleId  Int
+  user       User     @relation(fields: [userId], references: [id])
+  userId     Int
+
+  @@unique([articleId, userId])
+  @@index([articleId])
+  @@index([userId])
+}
+
+model ArticleBookmark {
+  id         Int      @id @default(autoincrement())
+  createdAt  DateTime @default(now())
+  article    Article  @relation(fields: [articleId], references: [id])
+  articleId  Int
+  user       User     @relation(fields: [userId], references: [id])
+  userId     Int
+
+  @@unique([articleId, userId])
+  @@index([articleId])
+  @@index([userId])
 }
