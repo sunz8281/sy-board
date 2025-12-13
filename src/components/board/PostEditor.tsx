@@ -3,6 +3,8 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import Input from "@comp/common/Input/Input";
 import { Button } from "@comp/common/Button/Button";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 type EditorMode = "create" | "edit";
 
@@ -11,15 +13,19 @@ type PostEditorProps = {
   activeCategory?: number;
   initialTitle?: string;
   initialContent?: string;
+  postId?: number;
 };
 
-export function PostEditor({ mode, activeCategory = 0, initialContent, initialTitle }: PostEditorProps) {
+export function PostEditor({ mode, activeCategory = 0, initialContent, initialTitle, postId }: PostEditorProps) {
+  const router = useRouter();
   const [title, setTitle] = useState(initialTitle ?? "");
   const [content, setContent] = useState(initialContent ?? "");
   const [categoryId, setCategoryId] = useState<number>(activeCategory === 0 ? 1 : activeCategory);
   const [categories, setCategories] = useState<Array<{ id: number; name: string }>>([]);
   const [catError, setCatError] = useState<string | null>(null);
   const [catLoading, setCatLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const heading = mode === "edit" ? "글 수정" : "새 글쓰기";
   const submitLabel = mode === "edit" ? "수정하기" : "새 글쓰기";
@@ -28,6 +34,12 @@ export function PostEditor({ mode, activeCategory = 0, initialContent, initialTi
     const found = categories.find((item) => item.id === categoryId);
     return found?.name ?? "전체게시판";
   }, [categories, categoryId]);
+
+  useEffect(() => {
+    if (initialTitle !== undefined) setTitle(initialTitle);
+    if (initialContent !== undefined) setContent(initialContent);
+    if (activeCategory && activeCategory !== 0) setCategoryId(activeCategory);
+  }, [initialTitle, initialContent, activeCategory]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -51,17 +63,52 @@ export function PostEditor({ mode, activeCategory = 0, initialContent, initialTi
     return () => controller.abort();
   }, []);
 
-  const handleSubmit = (event: FormEvent) => {
+  const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    // TODO: wire up submit logic
+    if (!title.trim() || !content.trim()) {
+      setSubmitError("제목과 본문을 입력하세요.");
+      return;
+    }
+
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      if (mode === "edit" && postId) {
+        const res = await fetch(`/api/articles/${postId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title, content, categoryId }),
+        });
+        if (!res.ok) throw new Error("게시글 수정에 실패했습니다.");
+        router.push(`/board/${categoryId}/${postId}`);
+      } else {
+        const res = await fetch("/api/articles", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title,
+            content,
+            categoryId,
+            authorId: 1, // TODO: 로그인 사용자 ID로 대체
+          }),
+        });
+        if (!res.ok) throw new Error("게시글 등록에 실패했습니다.");
+        const created = await res.json();
+        router.push(`/board/${categoryId}/${created.id ?? ""}`);
+      }
+    } catch (err: any) {
+      setSubmitError(err.message ?? "요청에 실패했습니다.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
     <section className="flex min-w-[400px] flex-1 flex-col gap-4">
       <div className="flex flex-col gap-1">
-        <button type="button" className="w-fit text-sm font-medium text-[#596673]">
+        <Link href="/board/1" type="button" className="w-fit text-sm font-medium text-[#596673]">
           ←  목록으로
-        </button>
+        </Link>
         <h1 className="text-[28px] font-bold leading-[34px] text-[#1e1e1e]">{heading}</h1>
       </div>
 
@@ -95,7 +142,6 @@ export function PostEditor({ mode, activeCategory = 0, initialContent, initialTi
               value={categoryId}
               onChange={(e) => setCategoryId(Number(e.target.value))}
             >
-              <option value={0}>전체게시판</option>
               {categories.map((option) => (
                 <option key={option.id} value={option.id}>
                   {option.name}
@@ -148,10 +194,15 @@ export function PostEditor({ mode, activeCategory = 0, initialContent, initialTi
           >
             임시 저장
           </Button>
-          <Button type="submit" className="w-1/2 rounded-[16px] bg-primary text-[16px] font-semibold text-white">
+          <Button
+            type="submit"
+            disabled={submitting}
+            className="w-1/2 rounded-[16px] bg-primary text-[16px] font-semibold text-white disabled:opacity-70"
+          >
             {submitLabel}
           </Button>
         </div>
+        {submitError && <p className="text-[12px] text-primary">{submitError}</p>}
       </form>
     </section>
   );
