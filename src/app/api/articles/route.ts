@@ -17,13 +17,24 @@ export async function GET(request: NextRequest) {
     const articles = await prisma.article.findMany({
       where: categoryFilter ? { categoryId: categoryFilter } : undefined,
       orderBy: { createdAt: "desc" },
-      include: {
+      select: {
+        id: true,
+        title: true,
+        content: true,
+        createdAt: true,
+        updatedAt: true,
         category: { select: { id: true, name: true } },
         author: { select: { name: true } },
+        _count: { select: { comments: true } },
       },
     });
 
-    return NextResponse.json(articles);
+    const flattened = articles.map((article) => ({
+      ...article,
+      author: article.author?.name ?? null,
+    }));
+
+    return NextResponse.json(flattened);
   } catch (error) {
     console.error("[GET /api/articles]", error);
     return NextResponse.json({ message: "Failed to fetch articles" }, { status: 500 });
