@@ -16,7 +16,7 @@ type PostEditorProps = {
 export function PostEditor({ mode, activeCategory = 0, initialContent, initialTitle }: PostEditorProps) {
   const [title, setTitle] = useState(initialTitle ?? "");
   const [content, setContent] = useState(initialContent ?? "");
-  const [categoryId, setCategoryId] = useState<number>(activeCategory);
+  const [categoryId, setCategoryId] = useState<number>(activeCategory === 0 ? 1 : activeCategory);
   const [categories, setCategories] = useState<Array<{ id: number; name: string }>>([]);
   const [catError, setCatError] = useState<string | null>(null);
   const [catLoading, setCatLoading] = useState(false);
