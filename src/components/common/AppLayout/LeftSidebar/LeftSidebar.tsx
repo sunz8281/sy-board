@@ -22,6 +22,7 @@ const LeftSidebar = ({activeCategory = 0}: LeftSidebarProps ) => {
     const [userName, setUserName] = useState<string>("사용자");
     const [userInfo, setUserInfo] = useState<string>("");
     const [userError, setUserError] = useState<string | null>(null);
+    const [userId, setUserId] = useState<number | null>(null);
 
     useEffect(() => {
         const controller = new AbortController();
@@ -46,13 +47,22 @@ const LeftSidebar = ({activeCategory = 0}: LeftSidebarProps ) => {
         const fetchUser = async () => {
             setUserError(null);
             try {
-                const res = await fetch("/api/users", { signal: controller.signal });
+                const stored = typeof window !== "undefined" ? window.localStorage.getItem("userId") : null;
+                const resolvedUserId = stored ? Number(stored) : 1;
+                if (typeof window !== "undefined" && !stored) {
+                    window.localStorage.setItem("userId", String(resolvedUserId));
+                }
+                setUserId(resolvedUserId);
+
+                const res = await fetch("/api/users/me", {
+                    headers: { "x-user-id": String(resolvedUserId) },
+                    signal: controller.signal
+                });
                 if (!res.ok) throw new Error(`사용자 정보를 불러오지 못했습니다. (${res.status})`);
                 const data = await res.json();
-                const first = data?.[0];
-                if (first) {
-                    setUserName(first.name ?? first.email ?? "사용자");
-                    setUserInfo(first.email ?? "");
+                if (data) {
+                    setUserName(data.name ?? data.email ?? "사용자");
+                    setUserInfo(data.email ?? "");
                 }
             } catch (err: any) {
                 if (err.name === "AbortError") return;

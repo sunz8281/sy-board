@@ -26,6 +26,7 @@ export function PostEditor({ mode, activeCategory = 0, initialContent, initialTi
   const [catLoading, setCatLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [userId, setUserId] = useState<number | null>(null);
 
   const heading = mode === "edit" ? "글 수정" : "새 글쓰기";
   const submitLabel = mode === "edit" ? "수정하기" : "새 글쓰기";
@@ -63,10 +64,26 @@ export function PostEditor({ mode, activeCategory = 0, initialContent, initialTi
     return () => controller.abort();
   }, []);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const stored = window.localStorage.getItem("userId");
+    const resolved = stored ? Number(stored) : null;
+    if (resolved) {
+      setUserId(resolved);
+    } else {
+      window.localStorage.setItem("userId", "1");
+      setUserId(1);
+    }
+  }, []);
+
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
     if (!title.trim() || !content.trim()) {
       setSubmitError("제목과 본문을 입력하세요.");
+      return;
+    }
+    if (!userId) {
+      setSubmitError("로그인이 필요합니다.");
       return;
     }
 
@@ -89,7 +106,7 @@ export function PostEditor({ mode, activeCategory = 0, initialContent, initialTi
             title,
             content,
             categoryId,
-            authorId: 1, // TODO: 로그인 사용자 ID로 대체
+            authorId: userId,
           }),
         });
         if (!res.ok) throw new Error("게시글 등록에 실패했습니다.");

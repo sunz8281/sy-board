@@ -47,6 +47,7 @@ export default function BoardDetailPage() {
   const [deletingCommentId, setDeletingCommentId] = useState<number | null>(null);
   const [replyingToId, setReplyingToId] = useState<number | null>(null);
   const [replyText, setReplyText] = useState<string>("");
+  const [userId, setUserId] = useState<number | null>(null);
 
   const loadArticle = async (signal?: AbortSignal) => {
     setLoading(true);
@@ -73,6 +74,18 @@ export default function BoardDetailPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.pageId]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const stored = window.localStorage.getItem("userId");
+    const resolved = stored ? Number(stored) : null;
+    if (resolved) {
+      setUserId(resolved);
+    } else {
+      window.localStorage.setItem("userId", "1");
+      setUserId(1);
+    }
+  }, []);
+
   const flattenedComments = useMemo(() => article?.comments ?? [], [article]);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -88,7 +101,7 @@ export default function BoardDetailPage() {
         body: JSON.stringify({
           content: commentText,
           articleId: article?.id,
-          authorId: 1, // TODO: 실제 로그인 사용자 ID로 대체
+          authorId: userId,
         }),
       });
       if (!res.ok) throw new Error("댓글 등록에 실패했습니다.");
@@ -111,6 +124,10 @@ export default function BoardDetailPage() {
   const handleSubmitReply = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!replyingToId || !replyText.trim()) return;
+    if (!userId) {
+      setCommentActionError("로그인이 필요합니다.");
+      return;
+    }
     try {
       setCommentActionError(null);
       const res = await fetch("/api/comments", {
@@ -119,7 +136,7 @@ export default function BoardDetailPage() {
         body: JSON.stringify({
           content: replyText,
           articleId: article?.id,
-          authorId: 1, // TODO: 실제 로그인 사용자 ID로 대체
+          authorId: userId,
           parentId: replyingToId,
         }),
       });
@@ -142,6 +159,10 @@ export default function BoardDetailPage() {
     e.preventDefault();
     if (!editingCommentId) return;
     if (!editingText.trim()) return;
+    if (!userId) {
+      setCommentActionError("로그인이 필요합니다.");
+      return;
+    }
     try {
       const res = await fetch(`/api/comments/${editingCommentId}`, {
         method: "PATCH",
@@ -158,6 +179,10 @@ export default function BoardDetailPage() {
   };
 
   const handleDeleteComment = async (commentId: number) => {
+    if (!userId) {
+      setCommentActionError("로그인이 필요합니다.");
+      return;
+    }
     setDeletingCommentId(commentId);
     setCommentActionError(null);
     try {
