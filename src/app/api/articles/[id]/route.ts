@@ -143,3 +143,24 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     return NextResponse.json({ message: "Failed to update article" }, { status: 500 });
   }
 }
+
+export async function DELETE(_request: NextRequest, { params }: Params) {
+  const resolved = typeof (params as any)?.then === "function" ? await (params as any) : params;
+  const idParam = resolved?.id;
+  if (!idParam) {
+    return NextResponse.json({ message: "id는 필수입니다." }, { status: 400 });
+  }
+
+  const articleId = Number.parseInt(idParam, 10);
+  if (Number.isNaN(articleId)) {
+    return NextResponse.json({ message: "id는 숫자여야 합니다." }, { status: 400 });
+  }
+
+  try {
+    await prisma.article.delete({ where: { id: articleId } });
+    return NextResponse.json({ deleted: true });
+  } catch (error) {
+    console.error("[DELETE /api/articles/:id]", error);
+    return NextResponse.json({ message: "Failed to delete article" }, { status: 500 });
+  }
+}
