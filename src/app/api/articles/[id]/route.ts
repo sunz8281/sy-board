@@ -145,8 +145,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
 }
 
 export async function DELETE(_request: NextRequest, { params }: Params) {
-  const resolved = typeof (params as any)?.then === "function" ? await (params as any) : params;
-  const idParam = resolved?.id;
+  const idParam = (await params)?.id;
   if (!idParam) {
     return NextResponse.json({ message: "id는 필수입니다." }, { status: 400 });
   }
@@ -157,7 +156,17 @@ export async function DELETE(_request: NextRequest, { params }: Params) {
   }
 
   try {
-    await prisma.article.delete({ where: { id: articleId } });
+    const existing = await prisma.article.findUnique({ where: { id: articleId }, select: { id: true } });
+    if (!existing) {
+      return NextResponse.json({ message: "게시글을 찾을 수 없습니다." }, { status: 404 });
+    }
+
+    await prisma.$transaction([
+      prisma.comment.deleteMany({ where: { articleId } }),
+      prisma.articleLike.deleteMany({ where: { articleId } }),
+      prisma.articleBookmark.deleteMany({ where: { articleId } }),
+      prisma.article.delete({ where: { id: articleId } }),
+    ]);
     return NextResponse.json({ deleted: true });
   } catch (error) {
     console.error("[DELETE /api/articles/:id]", error);
