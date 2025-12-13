@@ -18,8 +18,8 @@ export async function GET(request: NextRequest) {
       where: categoryFilter ? { categoryId: categoryFilter } : undefined,
       orderBy: { createdAt: "desc" },
       include: {
-        category: { select: { name: true } },
-        author: { select: { id: true, name: true } },
+        category: { select: { id: true, name: true } },
+        author: { select: { name: true } },
       },
     });
 
