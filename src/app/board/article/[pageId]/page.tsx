@@ -4,6 +4,8 @@ import { AppLayout } from "@comp/common/AppLayout/AppLayout";
 import { useParams } from "next/navigation";
 import { formatDateDot } from "@utils/formatDate";
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 type Comment = {
   id: number;
@@ -17,9 +19,8 @@ type Comment = {
 };
 
 export default function BoardDetailPage() {
-  const params = useParams<{ id: string; pageId: string }>();
-
-  const activeCategory = Number.isNaN(Number(params.id)) ? 0 : Number(params.id);
+  const params = useParams<{ pageId: string }>();
+  const router = useRouter();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -64,6 +65,8 @@ export default function BoardDetailPage() {
   }, [params.pageId]);
 
   const flattenedComments = useMemo(() => article?.comments ?? [], [article]);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,6 +90,21 @@ export default function BoardDetailPage() {
       }
     } catch (err: any) {
       setError(err.message ?? "댓글 등록에 실패했습니다.");
+    }
+  };
+
+  const handleDeleteArticle = async () => {
+    if (!article) return;
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      const res = await fetch(`/api/articles/${article.id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("게시글 삭제에 실패했습니다.");
+      router.push(`/board/${article.category?.id ?? 0}`);
+    } catch (err: any) {
+      setDeleteError(err.message ?? "게시글 삭제에 실패했습니다.");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -118,14 +136,32 @@ export default function BoardDetailPage() {
   };
 
   return (
-    <AppLayout header leftSidebar rightSidebar activeCategory={activeCategory}>
+    <AppLayout header leftSidebar rightSidebar activeCategory={article?.category?.id}>
       <section className="flex min-w-[400px] flex-1 flex-col gap-4">
         <div className="flex items-center justify-between">
-          <button className="text-sm font-medium text-gray-600">← 목록으로</button>
+          <Link href="/board/0" className="text-sm font-medium text-gray-600">← 목록으로</Link>
+          {article && (
+            <div className="flex items-center gap-2 text-sm">
+              <Link
+                href={`/board/article/${article.id}/edit`}
+                className="rounded-[10px] border border-gray-200 px-3 py-1 text-gray-700 hover:bg-gray-50"
+              >
+                수정
+              </Link>
+              <button
+                onClick={handleDeleteArticle}
+                disabled={deleting}
+                className="rounded-[10px] border border-gray-200 px-3 py-1 text-red-600 hover:bg-red-50 disabled:opacity-60"
+              >
+                {deleting ? "삭제 중..." : "삭제"}
+              </button>
+            </div>
+          )}
         </div>
 
         {loading && <div className="text-sm text-gray-600">불러오는 중...</div>}
         {error && <div className="text-sm text-primary">{error}</div>}
+        {deleteError && <div className="text-sm text-primary">{deleteError}</div>}
 
         {article && !loading && !error && (
           <>

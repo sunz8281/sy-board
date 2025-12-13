@@ -1,4 +1,7 @@
+import Link from "next/link";
+
 type PostCardProps = {
+    id: number;
   title: string;
   commentCount: number;
   preview: string;
@@ -11,6 +14,7 @@ type PostCardProps = {
 };
 
 export function PostCard({
+    id,
   title,
   commentCount,
   preview,
@@ -22,7 +26,7 @@ export function PostCard({
   favorites,
 }: PostCardProps) {
   return (
-    <article className="rounded-[16px] border border-[#ededed] bg-white p-5">
+    <Link href={`/board/article/${id}`} className="rounded-[16px] border border-[#ededed] bg-white p-5">
       <div className="flex flex-col gap-1">
         <div className="flex items-center gap-2">
           <h2 className="text-[16px] font-semibold leading-[19px] text-[#1a1a1a]">{title}</h2>
@@ -45,6 +49,6 @@ export function PostCard({
           <span>⭐️ {favorites}</span>
         </div>
       </div>
-    </article>
+    </Link>
   );
 }

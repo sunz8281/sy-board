@@ -61,6 +61,7 @@ export default function BoardPage() {
           articles.map((post) => (
             <PostCard
               key={post.id}
+              id={post.id}
               title={post.title}
               commentCount={post.commentsCount ?? 0}
               preview={post.content ?? ""}

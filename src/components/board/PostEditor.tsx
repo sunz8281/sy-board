@@ -80,7 +80,7 @@ export function PostEditor({ mode, activeCategory = 0, initialContent, initialTi
           body: JSON.stringify({ title, content, categoryId }),
         });
         if (!res.ok) throw new Error("게시글 수정에 실패했습니다.");
-        router.push(`/board/${categoryId}/${postId}`);
+        router.push(`/board/article/${postId}`);
       } else {
         const res = await fetch("/api/articles", {
           method: "POST",
@@ -94,7 +94,7 @@ export function PostEditor({ mode, activeCategory = 0, initialContent, initialTi
         });
         if (!res.ok) throw new Error("게시글 등록에 실패했습니다.");
         const created = await res.json();
-        router.push(`/board/${categoryId}/${created.id ?? ""}`);
+        router.push(`/board/article/${created.id ?? ""}`);
       }
     } catch (err: any) {
       setSubmitError(err.message ?? "요청에 실패했습니다.");
