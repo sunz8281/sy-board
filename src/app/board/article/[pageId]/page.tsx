@@ -6,6 +6,8 @@ import { formatDateDot } from "@utils/formatDate";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { Button } from "@comp/common/Button/Button";
+import Input from "@comp/common/Input/Input";
 
 type Comment = {
   id: number;
@@ -39,29 +41,34 @@ export default function BoardDetailPage() {
   } | null>(null);
 
   const [commentText, setCommentText] = useState("");
+  const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
+  const [editingText, setEditingText] = useState<string>("");
+  const [commentActionError, setCommentActionError] = useState<string | null>(null);
+  const [deletingCommentId, setDeletingCommentId] = useState<number | null>(null);
+
+  const loadArticle = async (signal?: AbortSignal) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/articles/${params.pageId}`, { signal });
+      if (!res.ok) {
+        throw new Error(`게시글을 불러오지 못했습니다. (${res.status})`);
+      }
+      const data = await res.json();
+      setArticle(data);
+    } catch (err: any) {
+      if (err.name === "AbortError") return;
+      setError(err.message ?? "게시글을 불러오지 못했습니다.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     const controller = new AbortController();
-    const fetchArticle = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await fetch(`/api/articles/${params.pageId}`, { signal: controller.signal });
-        if (!res.ok) {
-          throw new Error(`게시글을 불러오지 못했습니다. (${res.status})`);
-        }
-        const data = await res.json();
-        setArticle(data);
-      } catch (err: any) {
-        if (err.name === "AbortError") return;
-        setError(err.message ?? "게시글을 불러오지 못했습니다.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchArticle();
+    loadArticle(controller.signal);
     return () => controller.abort();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.pageId]);
 
   const flattenedComments = useMemo(() => article?.comments ?? [], [article]);
@@ -72,6 +79,7 @@ export default function BoardDetailPage() {
     e.preventDefault();
     if (!commentText.trim()) return;
     try {
+      setCommentActionError(null);
       const res = await fetch("/api/comments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -84,12 +92,48 @@ export default function BoardDetailPage() {
       if (!res.ok) throw new Error("댓글 등록에 실패했습니다.");
       setCommentText("");
       // refetch comments
-      const refreshed = await fetch(`/api/articles/${params.pageId}`);
-      if (refreshed.ok) {
-        setArticle(await refreshed.json());
-      }
+      await loadArticle();
     } catch (err: any) {
-      setError(err.message ?? "댓글 등록에 실패했습니다.");
+      setCommentActionError(err.message ?? "댓글 등록에 실패했습니다.");
+    }
+  };
+
+  const startEditComment = (comment: Comment) => {
+    setEditingCommentId(comment.id);
+    setEditingText(comment.content ?? "");
+    setCommentActionError(null);
+  };
+
+  const handleSubmitEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingCommentId) return;
+    if (!editingText.trim()) return;
+    try {
+      const res = await fetch(`/api/comments/${editingCommentId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: editingText }),
+      });
+      if (!res.ok) throw new Error("댓글 수정에 실패했습니다.");
+      setEditingCommentId(null);
+      setEditingText("");
+      await loadArticle();
+    } catch (err: any) {
+      setCommentActionError(err.message ?? "댓글 수정에 실패했습니다.");
+    }
+  };
+
+  const handleDeleteComment = async (commentId: number) => {
+    setDeletingCommentId(commentId);
+    setCommentActionError(null);
+    try {
+      const res = await fetch(`/api/comments/${commentId}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("댓글 삭제에 실패했습니다.");
+      await loadArticle();
+    } catch (err: any) {
+      setCommentActionError(err.message ?? "댓글 삭제에 실패했습니다.");
+    } finally {
+      setDeletingCommentId(null);
     }
   };
 
@@ -124,8 +168,55 @@ export default function BoardDetailPage() {
               </div>
             </div>
           </div>
+          {!comment.deleted && (
+            <div className="flex items-center gap-2 text-xs">
+              <Button
+                size="small"
+                variant="outlined"
+                rounded
+                onClick={() => startEditComment(comment)}
+              >
+                수정
+              </Button>
+              <Button
+                size="small"
+                variant="outlined"
+                rounded
+                disabled={deletingCommentId === comment.id}
+                onClick={() => handleDeleteComment(comment.id)}
+                className="text-primary"
+              >
+                {deletingCommentId === comment.id ? "삭제중..." : "삭제"}
+              </Button>
+            </div>
+          )}
         </div>
-        <p className="mt-2 text-sm text-gray-800">{comment.content ?? "(삭제된 댓글입니다)"}</p>
+        {editingCommentId === comment.id ? (
+          <form onSubmit={handleSubmitEdit} className="mt-2 space-y-2">
+            <textarea
+              className="w-full rounded border border-gray-200 p-2 text-sm"
+              value={editingText}
+              onChange={(e) => setEditingText(e.target.value)}
+            />
+            <div className="flex gap-2">
+              <Button size="small" type="submit">
+                저장
+              </Button>
+              <Button
+                size="small"
+                variant="outlined"
+                onClick={() => {
+                  setEditingCommentId(null);
+                  setEditingText("");
+                }}
+              >
+                취소
+              </Button>
+            </div>
+          </form>
+        ) : (
+          <p className="mt-2 text-sm text-gray-800">{comment.content ?? "(삭제된 댓글입니다)"}</p>
+        )}
         {comment.children?.length ? (
           <div className="mt-3 space-y-2 border-l border-gray-200 pl-3">
             {renderComments(comment.children)}
@@ -162,6 +253,7 @@ export default function BoardDetailPage() {
         {loading && <div className="text-sm text-gray-600">불러오는 중...</div>}
         {error && <div className="text-sm text-primary">{error}</div>}
         {deleteError && <div className="text-sm text-primary">{deleteError}</div>}
+        {commentActionError && <div className="text-sm text-primary">{commentActionError}</div>}
 
         {article && !loading && !error && (
           <>
@@ -189,18 +281,18 @@ export default function BoardDetailPage() {
 
             <form
               onSubmit={handleSubmitComment}
-              className="flex items-center gap-2 rounded-[16px] border border-gray-200 bg-white px-4 py-3"
+              className="flex items-center gap-2"
             >
-              <input
-                className="flex-1 bg-transparent text-sm text-gray-700 outline-none placeholder:text-gray-400"
+              <Input
+                rounded
                 placeholder="댓글을 입력하세요..."
                 aria-label="댓글 입력"
                 value={commentText}
                 onChange={(e) => setCommentText(e.target.value)}
               />
-              <button type="submit" className="rounded-[12px] bg-primary px-4 py-2 text-sm font-semibold text-white">
+              <Button type="submit" className="w-[100px]" disabled={!commentText.trim()}>
                 등록
-              </button>
+              </Button>
             </form>
 
             <div className="space-y-3">{renderComments(flattenedComments)}</div>
