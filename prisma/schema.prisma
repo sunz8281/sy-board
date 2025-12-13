@@ -48,7 +48,11 @@ model Comment {
   articleId Int
   author    User     @relation(fields: [authorId], references: [id])
   authorId  Int
+  parent    Comment? @relation("CommentToComment", fields: [parentId], references: [id])
+  parentId  Int?
+  children  Comment[] @relation("CommentToComment")
 
   @@index([articleId])
   @@index([authorId])
+  @@index([parentId])
 }
