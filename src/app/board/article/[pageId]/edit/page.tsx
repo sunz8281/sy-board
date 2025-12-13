@@ -26,7 +26,7 @@ export default function BoardEditPage() {
         const data = await res.json();
         setInitialTitle(data.title ?? "");
         setInitialContent(data.content ?? "");
-        setInitialCategory(data.category?.id ?? activeCategory || 1);
+        setInitialCategory((data.category?.id ?? activeCategory) || 1);
       } catch (err: any) {
         if (err.name === "AbortError") return;
         setError(err.message ?? "게시글을 불러오지 못했습니다.");
