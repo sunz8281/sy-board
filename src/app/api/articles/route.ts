@@ -32,9 +32,12 @@ export async function GET(request: NextRequest) {
     const flattened = articles.map((article) => ({
       ...article,
       author: article.author?.name ?? null,
+      commentsCount: article._count?.comments ?? 0,
     }));
 
-    return NextResponse.json(flattened);
+    const sanitized = flattened.map(({ _count, ...rest }) => rest);
+
+    return NextResponse.json(sanitized);
   } catch (error) {
     console.error("[GET /api/articles]", error);
     return NextResponse.json({ message: "Failed to fetch articles" }, { status: 500 });
