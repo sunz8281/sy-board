@@ -2,6 +2,8 @@ import {Button} from "@comp/common/Button/Button";
 import {IconChat} from "@icons/src/IconChat";
 import * as React from "react";
 import Link from "next/link";
+import {useRouter} from "next/navigation";
+import { useEffect, useState } from "react";
 
 const quickMenus = [
     { label: "내 글 모음" },
@@ -14,7 +16,27 @@ interface LeftSidebarProps {
 }
 
 const LeftSidebar = ({activeCategory = 0}: LeftSidebarProps ) => {
-    const categories = [{ id: 1, label: "자유 게시판" }, { id: 2, label: "질문 게시판"}];
+    const router = useRouter();
+    const [categories, setCategories] = useState<{ id: number; name: string }[]>([]);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const controller = new AbortController();
+        const fetchCategories = async () => {
+            setError(null);
+            try {
+                const res = await fetch("/api/categories", { signal: controller.signal });
+                if (!res.ok) throw new Error(`카테고리를 불러오지 못했습니다. (${res.status})`);
+                const data = await res.json();
+                setCategories(data);
+            } catch (err: any) {
+                if (err.name === "AbortError") return;
+                setError(err.message ?? "카테고리를 불러오지 못했습니다.");
+            }
+        };
+        fetchCategories();
+        return () => controller.abort();
+    }, []);
 
     const isActive = (id: number) => activeCategory===id
 
@@ -52,14 +74,18 @@ const LeftSidebar = ({activeCategory = 0}: LeftSidebarProps ) => {
                     전체게시판
                 </Link>
                 <hr className="border-gray-200" />
-                {categories.map((category) =>
-                    <Link href={`/board/${category.id}`} key={`category-${category.label}-${category.id}`} className={isActive(category.id) ? "font-semibold text-primary" : "text-gray-600"}>
-                        {category.label}
-                    </Link>
+                {error ? (
+                    <span className="text-xs text-primary">{error}</span>
+                ) : (
+                    categories.map((category) =>
+                        <Link href={`/board/${category.id}`} key={`category-${category.name}-${category.id}`} className={isActive(category.id) ? "font-semibold text-primary" : "text-gray-600"}>
+                            {category.name}
+                        </Link>
+                    )
                 )}
             </div>
 
-            <Button variant="primary" size="big" rounded className="w-full">
+            <Button variant="primary" size="big" rounded className="w-full" onClick={() => router.push('/board/create')}>
                 새 글쓰기
             </Button>
         </aside>
