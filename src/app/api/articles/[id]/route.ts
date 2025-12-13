@@ -36,6 +36,9 @@ export async function GET(_request: NextRequest, { params }: Params) {
             id: true,
             content: true,
             createdAt: true,
+            updatedAt: true,
+            modified: true,
+            deletedAt: true,
             parentId: true,
             author: { select: { name: true } },
           },
@@ -49,8 +52,11 @@ export async function GET(_request: NextRequest, { params }: Params) {
 
     type CommentNode = {
       id: number;
-      content: string;
+      content: string | null;
       createdAt: Date;
+      updatedAt: Date;
+      modified: boolean;
+      deleted: boolean;
       author: string | null;
       children: CommentNode[];
     };
@@ -61,8 +67,11 @@ export async function GET(_request: NextRequest, { params }: Params) {
     article.comments.forEach((c) => {
       map.set(c.id, {
         id: c.id,
-        content: c.content,
+        content: c.deletedAt ? null : c.content,
         createdAt: c.createdAt,
+        updatedAt: c.updatedAt,
+        modified: c.modified,
+        deleted: Boolean(c.deletedAt),
         author: c.author?.name ?? null,
         children: [],
       });

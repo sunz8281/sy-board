@@ -1,0 +1,149 @@
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+
+type Params = { params: Promise<{ id: string }> | { id: string } };
+
+const resolveId = async (params?: Params["params"]) => {
+  const resolved = typeof (params as any)?.then === "function" ? await (params as any) : params;
+  return resolved && typeof resolved === "object" && "id" in resolved ? (resolved as { id?: string }).id : undefined;
+};
+
+export async function PATCH(request: NextRequest, { params }: Params) {
+  const idParam = await resolveId(params);
+  if (!idParam) {
+    return NextResponse.json({ message: "id는 필수입니다." }, { status: 400 });
+  }
+  const commentId = Number.parseInt(idParam, 10);
+  if (Number.isNaN(commentId)) {
+    return NextResponse.json({ message: "id는 숫자여야 합니다." }, { status: 400 });
+  }
+
+  try {
+    const body = await request.json();
+    const { content } = body ?? {};
+    if (!content) {
+      return NextResponse.json({ message: "content는 필수입니다." }, { status: 400 });
+    }
+
+    const existing = await prisma.comment.findUnique({
+      where: { id: commentId },
+      select: { deletedAt: true },
+    });
+    if (!existing) {
+      return NextResponse.json({ message: "댓글을 찾을 수 없습니다." }, { status: 404 });
+    }
+    if (existing.deletedAt) {
+      return NextResponse.json({ message: "삭제된 댓글은 수정할 수 없습니다." }, { status: 400 });
+    }
+
+    const updated = await prisma.comment.update({
+      where: { id: commentId },
+      data: { content, modified: true },
+      select: {
+        id: true,
+        content: true,
+        createdAt: true,
+        updatedAt: true,
+        modified: true,
+        parentId: true,
+        authorId: true,
+        articleId: true,
+      },
+    });
+
+    return NextResponse.json(updated);
+  } catch (error) {
+    console.error("[PATCH /api/comments/:id]", error);
+    return NextResponse.json({ message: "Failed to update comment" }, { status: 500 });
+  }
+}
+
+const hardDeleteOrphans = async (commentId: number) => {
+  // delete current comment
+  await prisma.comment.delete({ where: { id: commentId } });
+
+  // climb up and delete soft-deleted parents that became orphaned
+  let currentParentId: number | null | undefined = (
+    await prisma.comment.findUnique({ where: { id: commentId }, select: { parentId: true } })
+  )?.parentId;
+
+  while (currentParentId) {
+    const parent = await prisma.comment.findUnique({
+      where: { id: currentParentId },
+      select: {
+        id: true,
+        parentId: true,
+        deletedAt: true,
+        _count: { select: { children: true } },
+      },
+    });
+    if (!parent) break;
+
+    if (parent.deletedAt && parent._count.children === 0) {
+      currentParentId = parent.parentId;
+      await prisma.comment.delete({ where: { id: parent.id } });
+    } else {
+      break;
+    }
+  }
+};
+
+export async function DELETE(request: NextRequest, { params }: Params) {
+  const idParam = await resolveId(params);
+  if (!idParam) {
+    return NextResponse.json({ message: "id는 필수입니다." }, { status: 400 });
+  }
+  const commentId = Number.parseInt(idParam, 10);
+  if (Number.isNaN(commentId)) {
+    return NextResponse.json({ message: "id는 숫자여야 합니다." }, { status: 400 });
+  }
+
+  try {
+    const target = await prisma.comment.findUnique({
+      where: { id: commentId },
+      select: { id: true, parentId: true, deletedAt: true, _count: { select: { children: true } } },
+    });
+    if (!target) {
+      return NextResponse.json({ message: "댓글을 찾을 수 없습니다." }, { status: 404 });
+    }
+
+    if (target._count.children > 0) {
+      if (!target.deletedAt) {
+        await prisma.comment.update({
+          where: { id: commentId },
+          data: {
+            deletedAt: new Date(),
+            content: "",
+            modified: true,
+          },
+        });
+      }
+      return NextResponse.json({ deleted: "soft" });
+    }
+
+    await prisma.comment.delete({ where: { id: commentId } });
+
+    // recursively remove orphaned parents that were soft-deleted and now have no children
+    let parentId = target.parentId;
+    while (parentId) {
+      const parent = await prisma.comment.findUnique({
+        where: { id: parentId },
+        select: { id: true, parentId: true, deletedAt: true, _count: { select: { children: true } } },
+      });
+      if (!parent) break;
+
+      if (parent.deletedAt && parent._count.children === 0) {
+        const nextParent = parent.parentId;
+        await prisma.comment.delete({ where: { id: parent.id } });
+        parentId = nextParent;
+      } else {
+        break;
+      }
+    }
+
+    return NextResponse.json({ deleted: "hard" });
+  } catch (error) {
+    console.error("[DELETE /api/comments/:id]", error);
+    return NextResponse.json({ message: "Failed to delete comment" }, { status: 500 });
+  }
+}
