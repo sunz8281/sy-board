@@ -19,6 +19,9 @@ const LeftSidebar = ({activeCategory = 0}: LeftSidebarProps ) => {
     const router = useRouter();
     const [categories, setCategories] = useState<{ id: number; name: string }[]>([]);
     const [error, setError] = useState<string | null>(null);
+    const [userName, setUserName] = useState<string>("사용자");
+    const [userInfo, setUserInfo] = useState<string>("");
+    const [userError, setUserError] = useState<string | null>(null);
 
     useEffect(() => {
         const controller = new AbortController();
@@ -38,6 +41,28 @@ const LeftSidebar = ({activeCategory = 0}: LeftSidebarProps ) => {
         return () => controller.abort();
     }, []);
 
+    useEffect(() => {
+        const controller = new AbortController();
+        const fetchUser = async () => {
+            setUserError(null);
+            try {
+                const res = await fetch("/api/users", { signal: controller.signal });
+                if (!res.ok) throw new Error(`사용자 정보를 불러오지 못했습니다. (${res.status})`);
+                const data = await res.json();
+                const first = data?.[0];
+                if (first) {
+                    setUserName(first.name ?? first.email ?? "사용자");
+                    setUserInfo(first.email ?? "");
+                }
+            } catch (err: any) {
+                if (err.name === "AbortError") return;
+                setUserError(err.message ?? "사용자 정보를 불러오지 못했습니다.");
+            }
+        };
+        fetchUser();
+        return () => controller.abort();
+    }, []);
+
     const isActive = (id: number) => activeCategory===id
 
     return (
@@ -45,8 +70,9 @@ const LeftSidebar = ({activeCategory = 0}: LeftSidebarProps ) => {
             <div className="rounded-[16px] border border-gray-200 bg-white p-5">
                 <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gray-200" />
                 <div className="text-center">
-                    <div className="text-sm font-bold text-black">박선영</div>
-                    <div className="mt-1 text-[12px] text-gray-600">2학년 / 소프트웨어개발과</div>
+                    <div className="text-sm font-bold text-black">{userName}</div>
+                    <div className="mt-1 text-[12px] text-gray-600">{userInfo || "로그인 필요"}</div>
+                    {userError && <div className="mt-1 text-[11px] text-primary">{userError}</div>}
                 </div>
                 <div className="mt-4 grid grid-cols-2 gap-2">
                     <Button variant="grayscale" size="small" rounded={false} className="w-full">
