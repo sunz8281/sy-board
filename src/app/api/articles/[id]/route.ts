@@ -7,6 +7,92 @@ type Params = {
   };
 };
 
+export async function GET(_request: NextRequest, { params }: Params) {
+  const articleId = Number(params.id);
+  if (Number.isNaN(articleId)) {
+    return NextResponse.json({ message: "id는 숫자여야 합니다." }, { status: 400 });
+  }
+
+  try {
+    const article = await prisma.article.findUnique({
+      where: { id: articleId },
+      select: {
+        id: true,
+        title: true,
+        content: true,
+        createdAt: true,
+        updatedAt: true,
+        category: { select: { id: true, name: true } },
+        author: { select: { name: true } },
+        _count: { select: { comments: true, likes: true, bookmarks: true } },
+        comments: {
+          orderBy: { createdAt: "asc" },
+          select: {
+            id: true,
+            content: true,
+            createdAt: true,
+            parentId: true,
+            author: { select: { name: true } },
+          },
+        },
+      },
+    });
+
+    if (!article) {
+      return NextResponse.json({ message: "게시글을 찾을 수 없습니다." }, { status: 404 });
+    }
+
+    type CommentNode = {
+      id: number;
+      content: string;
+      createdAt: Date;
+      author: string | null;
+      children: CommentNode[];
+    };
+
+    const map = new Map<number, CommentNode>();
+    const roots: CommentNode[] = [];
+
+    article.comments.forEach((c) => {
+      map.set(c.id, {
+        id: c.id,
+        content: c.content,
+        createdAt: c.createdAt,
+        author: c.author?.name ?? null,
+        children: [],
+      });
+    });
+
+    article.comments.forEach((c) => {
+      const node = map.get(c.id)!;
+      if (c.parentId && map.has(c.parentId)) {
+        map.get(c.parentId)!.children.push(node);
+      } else {
+        roots.push(node);
+      }
+    });
+
+    const result = {
+      id: article.id,
+      title: article.title,
+      content: article.content,
+      createdAt: article.createdAt,
+      updatedAt: article.updatedAt,
+      category: article.category,
+      author: article.author?.name ?? null,
+      comments: roots,
+      commentsCount: article._count?.comments ?? 0,
+      likesCount: article._count?.likes ?? 0,
+      bookmarksCount: article._count?.bookmarks ?? 0,
+    };
+
+    return NextResponse.json(result);
+  } catch (error) {
+    console.error("[GET /api/articles/:id]", error);
+    return NextResponse.json({ message: "Failed to fetch article" }, { status: 500 });
+  }
+}
+
 export async function PATCH(request: NextRequest, { params }: Params) {
   const articleId = Number(params.id);
   if (Number.isNaN(articleId)) {
