@@ -39,6 +39,8 @@ export default function BoardDetailPage() {
     commentsCount: number;
     likesCount: number;
     bookmarksCount: number;
+    liked?: boolean;
+    bookmarked?: boolean;
   } | null>(null);
 
   const [commentText, setCommentText] = useState("");
@@ -56,12 +58,16 @@ export default function BoardDetailPage() {
   const [likeLoading, setLikeLoading] = useState(false);
   const [bookmarkLoading, setBookmarkLoading] = useState(false);
 
-  const loadArticle = async (signal?: AbortSignal) => {
+  const loadArticle = async (signal?: AbortSignal, currentUserId?: number | null) => {
     setLoading(true);
     setError(null);
     setActionError(null);
     try {
-      const res = await fetch(`/api/articles/${params.pageId}`, { signal });
+      const headers: HeadersInit = {};
+      if (currentUserId) {
+        headers["x-user-id"] = String(currentUserId);
+      }
+      const res = await fetch(`/api/articles/${params.pageId}`, { signal, headers });
       if (!res.ok) {
         throw new Error(`게시글을 불러오지 못했습니다. (${res.status})`);
       }
@@ -69,6 +75,8 @@ export default function BoardDetailPage() {
       setArticle(data);
       setLikesCount(data?.likesCount ?? 0);
       setBookmarksCount(data?.bookmarksCount ?? 0);
+      setLiked(Boolean(data?.liked));
+      setBookmarked(Boolean(data?.bookmarked));
     } catch (err: any) {
       if (err.name === "AbortError") return;
       setError(err.message ?? "게시글을 불러오지 못했습니다.");
@@ -79,10 +87,10 @@ export default function BoardDetailPage() {
 
   useEffect(() => {
     const controller = new AbortController();
-    loadArticle(controller.signal);
+    loadArticle(controller.signal, userId);
     return () => controller.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [params.pageId]);
+  }, [params.pageId, userId]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -172,7 +180,7 @@ export default function BoardDetailPage() {
       if (!res.ok) throw new Error("댓글 등록에 실패했습니다.");
       setCommentText("");
       // refetch comments
-      await loadArticle();
+      await loadArticle(undefined, userId);
     } catch (err: any) {
       setCommentActionError(err.message ?? "댓글 등록에 실패했습니다.");
     }
@@ -208,7 +216,7 @@ export default function BoardDetailPage() {
       if (!res.ok) throw new Error("대댓글 등록에 실패했습니다.");
       setReplyingToId(null);
       setReplyText("");
-      await loadArticle();
+      await loadArticle(undefined, userId);
     } catch (err: any) {
       setCommentActionError(err.message ?? "대댓글 등록에 실패했습니다.");
     }
@@ -237,7 +245,7 @@ export default function BoardDetailPage() {
       if (!res.ok) throw new Error("댓글 수정에 실패했습니다.");
       setEditingCommentId(null);
       setEditingText("");
-      await loadArticle();
+      await loadArticle(undefined, userId);
     } catch (err: any) {
       setCommentActionError(err.message ?? "댓글 수정에 실패했습니다.");
     }
@@ -253,7 +261,7 @@ export default function BoardDetailPage() {
     try {
       const res = await fetch(`/api/comments/${commentId}`, { method: "DELETE" });
       if (!res.ok) throw new Error("댓글 삭제에 실패했습니다.");
-      await loadArticle();
+      await loadArticle(undefined, userId);
     } catch (err: any) {
       setCommentActionError(err.message ?? "댓글 삭제에 실패했습니다.");
     } finally {

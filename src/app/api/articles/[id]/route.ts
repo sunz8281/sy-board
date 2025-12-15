@@ -7,7 +7,7 @@ type Params = {
   }>;
 };
 
-export async function GET(_request: NextRequest, { params }: Params) {
+export async function GET(request: NextRequest, { params }: Params) {
   const idParam = (await params)?.id;
   if (!idParam) {
     return NextResponse.json({ message: "id는 필수입니다." }, { status: 400 });
@@ -18,8 +18,14 @@ export async function GET(_request: NextRequest, { params }: Params) {
     return NextResponse.json({ message: "id는 숫자여야 합니다." }, { status: 400 });
   }
 
+  const userHeader = request.headers.get("x-user-id");
+  const currentUserId = userHeader ? Number.parseInt(userHeader, 10) : null;
+  if (userHeader && Number.isNaN(currentUserId)) {
+    return NextResponse.json({ message: "x-user-id 헤더는 숫자여야 합니다." }, { status: 400 });
+  }
+
   try {
-    const article = await prisma.article.findUnique({
+    const articlePromise = prisma.article.findUnique({
       where: { id: articleId },
       select: {
         id: true,
@@ -45,6 +51,20 @@ export async function GET(_request: NextRequest, { params }: Params) {
         },
       },
     });
+
+    const [article, like, bookmark] = await Promise.all([
+      articlePromise,
+      currentUserId
+        ? prisma.articleLike.findUnique({
+            where: { articleId_userId: { articleId, userId: currentUserId } },
+          })
+        : Promise.resolve(null),
+      currentUserId
+        ? prisma.articleBookmark.findUnique({
+            where: { articleId_userId: { articleId, userId: currentUserId } },
+          })
+        : Promise.resolve(null),
+    ]);
 
     if (!article) {
       return NextResponse.json({ message: "게시글을 찾을 수 없습니다." }, { status: 404 });
@@ -98,6 +118,8 @@ export async function GET(_request: NextRequest, { params }: Params) {
       commentsCount: article._count?.comments ?? 0,
       likesCount: article._count?.likes ?? 0,
       bookmarksCount: article._count?.bookmarks ?? 0,
+      liked: Boolean(like),
+      bookmarked: Boolean(bookmark),
     };
 
     return NextResponse.json(result);
