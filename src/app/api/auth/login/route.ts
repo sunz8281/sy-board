@@ -26,7 +26,9 @@ export async function POST(request: NextRequest) {
     }
 
     const { passwordHash, ...safeUser } = user;
-    return NextResponse.json({ user: safeUser });
+    const response = NextResponse.json({ user: safeUser });
+    response.headers.set("x-user-id", String(user.id));
+    return response;
   } catch (error) {
     console.error("[POST /api/auth/login]", error);
     return NextResponse.json({ message: "Failed to login" }, { status: 500 });

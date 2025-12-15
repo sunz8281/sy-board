@@ -26,6 +26,7 @@ export default function BoardDetailPage() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
   const [article, setArticle] = useState<{
     id: number;
     title: string;
@@ -48,10 +49,17 @@ export default function BoardDetailPage() {
   const [replyingToId, setReplyingToId] = useState<number | null>(null);
   const [replyText, setReplyText] = useState<string>("");
   const [userId, setUserId] = useState<number | null>(null);
+  const [liked, setLiked] = useState<boolean | null>(null);
+  const [bookmarked, setBookmarked] = useState<boolean | null>(null);
+  const [likesCount, setLikesCount] = useState<number>(0);
+  const [bookmarksCount, setBookmarksCount] = useState<number>(0);
+  const [likeLoading, setLikeLoading] = useState(false);
+  const [bookmarkLoading, setBookmarkLoading] = useState(false);
 
   const loadArticle = async (signal?: AbortSignal) => {
     setLoading(true);
     setError(null);
+    setActionError(null);
     try {
       const res = await fetch(`/api/articles/${params.pageId}`, { signal });
       if (!res.ok) {
@@ -59,6 +67,8 @@ export default function BoardDetailPage() {
       }
       const data = await res.json();
       setArticle(data);
+      setLikesCount(data?.likesCount ?? 0);
+      setBookmarksCount(data?.bookmarksCount ?? 0);
     } catch (err: any) {
       if (err.name === "AbortError") return;
       setError(err.message ?? "게시글을 불러오지 못했습니다.");
@@ -89,6 +99,61 @@ export default function BoardDetailPage() {
   const flattenedComments = useMemo(() => article?.comments ?? [], [article]);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  const ensureUser = () => {
+    if (!userId) {
+      setActionError("로그인이 필요합니다.");
+      return false;
+    }
+    setActionError(null);
+    return true;
+  };
+
+  const handleToggleLike = async () => {
+    if (!article) return;
+    if (!ensureUser()) return;
+    setLikeLoading(true);
+    try {
+      const res = await fetch(`/api/articles/${article.id}/like`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data?.message ?? "좋아요 처리에 실패했습니다.");
+      }
+      setLiked(data.liked ?? false);
+      setLikesCount(data.likesCount ?? likesCount);
+    } catch (err: any) {
+      setActionError(err.message ?? "좋아요 처리에 실패했습니다.");
+    } finally {
+      setLikeLoading(false);
+    }
+  };
+
+  const handleToggleBookmark = async () => {
+    if (!article) return;
+    if (!ensureUser()) return;
+    setBookmarkLoading(true);
+    try {
+      const res = await fetch(`/api/articles/${article.id}/bookmark`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data?.message ?? "북마크 처리에 실패했습니다.");
+      }
+      setBookmarked(data.bookmarked ?? false);
+      setBookmarksCount(data.bookmarksCount ?? bookmarksCount);
+    } catch (err: any) {
+      setActionError(err.message ?? "북마크 처리에 실패했습니다.");
+    } finally {
+      setBookmarkLoading(false);
+    }
+  };
 
   const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -344,6 +409,7 @@ export default function BoardDetailPage() {
         {loading && <div className="text-sm text-gray-600">불러오는 중...</div>}
         {error && <div className="text-sm text-primary">{error}</div>}
         {deleteError && <div className="text-sm text-primary">{deleteError}</div>}
+        {actionError && <div className="text-sm text-primary">{actionError}</div>}
         {commentActionError && <div className="text-sm text-primary">{commentActionError}</div>}
 
         {article && !loading && !error && (
@@ -364,8 +430,26 @@ export default function BoardDetailPage() {
               <div className="mt-4 space-y-2">
                 <h1 className="text-2xl font-semibold text-gray-900">{article.title}</h1>
                 <div className="text-sm text-gray-600 whitespace-pre-line">{article.content}</div>
-                <div className="text-sm text-gray-500">
-                  💬 {article.commentsCount} · ⭐️ {article.bookmarksCount} · 👍 {article.likesCount}
+                <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500">
+                  <span>💬 {article.commentsCount}</span>
+                  <button
+                    type="button"
+                    onClick={handleToggleBookmark}
+                    disabled={bookmarkLoading}
+                    className="flex items-center gap-1 rounded-full border border-gray-200 px-3 py-1 text-xs text-gray-700 hover:border-primary hover:text-primary disabled:opacity-60"
+                  >
+                    <span>{bookmarked ? "⭐️ 북마크됨" : "⭐️ 북마크"}</span>
+                    <span className="text-[11px] text-gray-500">{bookmarksCount}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleToggleLike}
+                    disabled={likeLoading}
+                    className="flex items-center gap-1 rounded-full border border-gray-200 px-3 py-1 text-xs text-gray-700 hover:border-primary hover:text-primary disabled:opacity-60"
+                  >
+                    <span>{liked ? "👍 좋아요됨" : "👍 좋아요"}</span>
+                    <span className="text-[11px] text-gray-500">{likesCount}</span>
+                  </button>
                 </div>
               </div>
             </article>
