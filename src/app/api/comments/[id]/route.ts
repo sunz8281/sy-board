@@ -4,6 +4,15 @@ import { prisma } from "@/lib/prisma";
 type Params = { params: Promise<{ id: string }>};
 
 export async function PATCH(request: NextRequest, { params }: Params) {
+  const userHeader = request.headers.get("x-user-id");
+  if (!userHeader) {
+    return NextResponse.json({ message: "x-user-id 헤더가 필요합니다." }, { status: 401 });
+  }
+  const currentUserId = Number.parseInt(userHeader, 10);
+  if (Number.isNaN(currentUserId)) {
+    return NextResponse.json({ message: "x-user-id 헤더는 숫자여야 합니다." }, { status: 400 });
+  }
+
   const idParam = (await params).id;
   if (!idParam) {
     return NextResponse.json({ message: "id는 필수입니다." }, { status: 400 });
@@ -22,13 +31,16 @@ export async function PATCH(request: NextRequest, { params }: Params) {
 
     const existing = await prisma.comment.findUnique({
       where: { id: commentId },
-      select: { deletedAt: true },
+      select: { deletedAt: true, authorId: true },
     });
     if (!existing) {
       return NextResponse.json({ message: "댓글을 찾을 수 없습니다." }, { status: 404 });
     }
     if (existing.deletedAt) {
       return NextResponse.json({ message: "삭제된 댓글은 수정할 수 없습니다." }, { status: 400 });
+    }
+    if (existing.authorId !== currentUserId) {
+      return NextResponse.json({ message: "본인 댓글만 수정할 수 있습니다." }, { status: 403 });
     }
 
     const updated = await prisma.comment.update({
@@ -84,6 +96,15 @@ const hardDeleteOrphans = async (commentId: number) => {
 };
 
 export async function DELETE(request: NextRequest, { params }: Params) {
+  const userHeader = request.headers.get("x-user-id");
+  if (!userHeader) {
+    return NextResponse.json({ message: "x-user-id 헤더가 필요합니다." }, { status: 401 });
+  }
+  const currentUserId = Number.parseInt(userHeader, 10);
+  if (Number.isNaN(currentUserId)) {
+    return NextResponse.json({ message: "x-user-id 헤더는 숫자여야 합니다." }, { status: 400 });
+  }
+
   const idParam = (await params).id;
   if (!idParam) {
     return NextResponse.json({ message: "id는 필수입니다." }, { status: 400 });
@@ -96,10 +117,19 @@ export async function DELETE(request: NextRequest, { params }: Params) {
   try {
     const target = await prisma.comment.findUnique({
       where: { id: commentId },
-      select: { id: true, parentId: true, deletedAt: true, _count: { select: { children: true } } },
+      select: {
+        id: true,
+        parentId: true,
+        deletedAt: true,
+        authorId: true,
+        _count: { select: { children: true } },
+      },
     });
     if (!target) {
       return NextResponse.json({ message: "댓글을 찾을 수 없습니다." }, { status: 404 });
+    }
+    if (target.authorId !== currentUserId) {
+      return NextResponse.json({ message: "본인 댓글만 삭제할 수 있습니다." }, { status: 403 });
     }
 
     if (target._count.children > 0) {

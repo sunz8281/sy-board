@@ -167,6 +167,15 @@ export async function PATCH(request: NextRequest, { params }: Params) {
 }
 
 export async function DELETE(_request: NextRequest, { params }: Params) {
+  const userHeader = _request.headers.get("x-user-id");
+  if (!userHeader) {
+    return NextResponse.json({ message: "x-user-id 헤더가 필요합니다." }, { status: 401 });
+  }
+  const currentUserId = Number.parseInt(userHeader, 10);
+  if (Number.isNaN(currentUserId)) {
+    return NextResponse.json({ message: "x-user-id 헤더는 숫자여야 합니다." }, { status: 400 });
+  }
+
   const idParam = (await params)?.id;
   if (!idParam) {
     return NextResponse.json({ message: "id는 필수입니다." }, { status: 400 });
@@ -178,9 +187,15 @@ export async function DELETE(_request: NextRequest, { params }: Params) {
   }
 
   try {
-    const existing = await prisma.article.findUnique({ where: { id: articleId }, select: { id: true } });
+    const existing = await prisma.article.findUnique({
+      where: { id: articleId },
+      select: { id: true, authorId: true },
+    });
     if (!existing) {
       return NextResponse.json({ message: "게시글을 찾을 수 없습니다." }, { status: 404 });
+    }
+    if (existing.authorId !== currentUserId) {
+      return NextResponse.json({ message: "본인 글만 삭제할 수 있습니다." }, { status: 403 });
     }
 
     await prisma.$transaction([

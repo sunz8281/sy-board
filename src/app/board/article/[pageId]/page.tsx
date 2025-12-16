@@ -168,7 +168,10 @@ export default function BoardDetailPage() {
       setCommentActionError(null);
       const res = await fetch("/api/comments", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(userId ? { "x-user-id": String(userId) } : {}),
+        },
         body: JSON.stringify({
           content: commentText,
           articleId: article?.id,
@@ -203,7 +206,10 @@ export default function BoardDetailPage() {
       setCommentActionError(null);
       const res = await fetch("/api/comments", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(userId ? { "x-user-id": String(userId) } : {}),
+        },
         body: JSON.stringify({
           content: replyText,
           articleId: article?.id,
@@ -237,7 +243,10 @@ export default function BoardDetailPage() {
     try {
       const res = await fetch(`/api/comments/${editingCommentId}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-user-id": String(userId),
+        },
         body: JSON.stringify({ content: editingText }),
       });
       if (!res.ok) throw new Error("댓글 수정에 실패했습니다.");
@@ -257,7 +266,10 @@ export default function BoardDetailPage() {
     setDeletingCommentId(commentId);
     setCommentActionError(null);
     try {
-      const res = await fetch(`/api/comments/${commentId}`, { method: "DELETE" });
+      const res = await fetch(`/api/comments/${commentId}`, {
+        method: "DELETE",
+        headers: { "x-user-id": String(userId) },
+      });
       if (!res.ok) throw new Error("댓글 삭제에 실패했습니다.");
       await loadArticle(undefined, userId);
     } catch (err: any) {
@@ -272,7 +284,10 @@ export default function BoardDetailPage() {
     setDeleting(true);
     setDeleteError(null);
     try {
-      const res = await fetch(`/api/articles/${article.id}`, { method: "DELETE" });
+      const res = await fetch(`/api/articles/${article.id}`, {
+        method: "DELETE",
+        headers: userId ? { "x-user-id": String(userId) } : undefined,
+      });
       if (!res.ok) throw new Error("게시글 삭제에 실패했습니다.");
       router.push(`/board/${article.category?.id ?? 0}`);
     } catch (err: any) {
