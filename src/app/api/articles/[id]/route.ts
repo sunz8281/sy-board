@@ -34,7 +34,7 @@ export async function GET(request: NextRequest, { params }: Params) {
         createdAt: true,
         updatedAt: true,
         category: { select: { id: true, name: true } },
-        author: { select: { name: true } },
+        author: { select: { id: true, name: true } },
         _count: { select: { comments: true, likes: true, bookmarks: true } },
         comments: {
           orderBy: { createdAt: "asc" },
@@ -46,7 +46,7 @@ export async function GET(request: NextRequest, { params }: Params) {
             modified: true,
             deletedAt: true,
             parentId: true,
-            author: { select: { name: true } },
+            author: { select: { id: true, name: true } },
           },
         },
       },
@@ -78,6 +78,7 @@ export async function GET(request: NextRequest, { params }: Params) {
       modified: boolean;
       deleted: boolean;
       author: string | null;
+      authorId: number | null;
       children: CommentNode[];
     };
 
@@ -93,6 +94,7 @@ export async function GET(request: NextRequest, { params }: Params) {
         modified: c.modified,
         deleted: Boolean(c.deletedAt),
         author: c.author?.name ?? null,
+        authorId: c.author?.id ?? null,
         children: [],
       });
     });
@@ -114,6 +116,7 @@ export async function GET(request: NextRequest, { params }: Params) {
       updatedAt: article.updatedAt,
       category: article.category,
       author: article.author?.name ?? null,
+      authorId: article.author?.id ?? null,
       comments: roots,
       commentsCount: article._count?.comments ?? 0,
       likesCount: article._count?.likes ?? 0,

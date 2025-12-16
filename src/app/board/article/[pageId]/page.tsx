@@ -13,6 +13,7 @@ type Comment = {
   id: number;
   content: string | null;
   author: string | null;
+  authorId: number | null;
   createdAt: string;
   updatedAt: string;
   modified: boolean;
@@ -35,6 +36,7 @@ export default function BoardDetailPage() {
     updatedAt: string;
     category: { id: number; name: string };
     author: string | null;
+    authorId: number | null;
     comments: Comment[];
     commentsCount: number;
     likesCount: number;
@@ -57,6 +59,15 @@ export default function BoardDetailPage() {
   const [bookmarksCount, setBookmarksCount] = useState<number>(0);
   const [likeLoading, setLikeLoading] = useState(false);
   const [bookmarkLoading, setBookmarkLoading] = useState(false);
+
+  const findCommentById = (nodes: Comment[], id: number): Comment | null => {
+    for (const node of nodes) {
+      if (node.id === id) return node;
+      const childHit = node.children?.length ? findCommentById(node.children, id) : null;
+      if (childHit) return childHit;
+    }
+    return null;
+  };
 
   const loadArticle = async (signal?: AbortSignal, currentUserId?: number | null) => {
     setLoading(true);
@@ -227,6 +238,10 @@ export default function BoardDetailPage() {
   };
 
   const startEditComment = (comment: Comment) => {
+    if (comment.authorId !== userId) {
+      setCommentActionError("본인 댓글만 수정할 수 있습니다.");
+      return;
+    }
     setEditingCommentId(comment.id);
     setEditingText(comment.content ?? "");
     setCommentActionError(null);
@@ -263,6 +278,11 @@ export default function BoardDetailPage() {
       setCommentActionError("로그인이 필요합니다.");
       return;
     }
+    const target = findCommentById(flattenedComments, commentId);
+    if (target && target.authorId !== userId) {
+      setCommentActionError("본인 댓글만 삭제할 수 있습니다.");
+      return;
+    }
     setDeletingCommentId(commentId);
     setCommentActionError(null);
     try {
@@ -281,6 +301,10 @@ export default function BoardDetailPage() {
 
   const handleDeleteArticle = async () => {
     if (!article) return;
+    if (article.authorId !== userId) {
+      setDeleteError("본인 글만 삭제할 수 있습니다.");
+      return;
+    }
     setDeleting(true);
     setDeleteError(null);
     try {
@@ -313,7 +337,7 @@ export default function BoardDetailPage() {
               </div>
             </div>
           </div>
-          {!comment.deleted && (
+          {!comment.deleted && comment.authorId === userId && (
             <div className="flex items-center gap-2 text-xs">
               <Button
                 size="small"
@@ -408,7 +432,7 @@ export default function BoardDetailPage() {
       <section className="flex min-w-[400px] flex-1 flex-col gap-4">
         <div className="flex items-center justify-between">
           <Link href="/board/0" className="text-sm font-medium text-gray-600">← 목록으로</Link>
-          {article && (
+          {article && article.authorId === userId && (
             <div className="flex items-center gap-2 text-sm">
               <Link
                 href={`/board/article/${article.id}/edit`}
