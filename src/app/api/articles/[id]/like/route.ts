@@ -2,28 +2,25 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 type Params = {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 };
 
 export async function POST(request: NextRequest, { params }: Params) {
-  const articleId = Number(params.id);
+  const articleId = Number((await params).id);
   if (Number.isNaN(articleId)) {
     return NextResponse.json({ message: "id는 숫자여야 합니다." }, { status: 400 });
   }
 
   try {
-    const body = await request.json();
-    const { userId } = body ?? {};
-
-    if (!userId) {
-      return NextResponse.json({ message: "userId는 필수입니다." }, { status: 400 });
+    const headerUserId = request.headers.get("x-user-id");
+    if (!headerUserId) {
+      return NextResponse.json({ message: "x-user-id 헤더가 필요합니다." }, { status: 400 });
     }
-
-    const numericUserId = Number(userId);
+    const numericUserId = Number(headerUserId);
     if (Number.isNaN(numericUserId)) {
-      return NextResponse.json({ message: "userId는 숫자여야 합니다." }, { status: 400 });
+      return NextResponse.json({ message: "x-user-id 헤더는 숫자여야 합니다." }, { status: 400 });
     }
 
     const existing = await prisma.articleLike.findUnique({

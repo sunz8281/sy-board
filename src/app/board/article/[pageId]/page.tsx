@@ -124,8 +124,7 @@ export default function BoardDetailPage() {
     try {
       const res = await fetch(`/api/articles/${article.id}/like`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId }),
+        headers: { "x-user-id": String(userId) },
       });
       const data = await res.json();
       if (!res.ok) {
@@ -147,8 +146,7 @@ export default function BoardDetailPage() {
     try {
       const res = await fetch(`/api/articles/${article.id}/bookmark`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId }),
+        headers: { "x-user-id": String(userId) },
       });
       const data = await res.json();
       if (!res.ok) {
