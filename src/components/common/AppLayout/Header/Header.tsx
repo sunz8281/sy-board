@@ -11,12 +11,6 @@ type NavItem = {
 
 const navItems: NavItem[] = [
     { label: "게시판", href: "/board"},
-    { label: "시간표", href: "/timetable"},
-    { label: "강의평가", href: "/reviews"},
-    { label: "학점계산기", href: "/calculator"},
-    { label: "친구", href: "/friends"},
-    { label: "책방", href: "/books"},
-    { label: "캠퍼스맵", href: "/map"},
 ];
 
 export const Header = () => {

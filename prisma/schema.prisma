@@ -17,6 +17,8 @@ model User {
   comments  Comment[]
   likes     ArticleLike[]
   bookmarks ArticleBookmark[]
+  notifications Notification[]
+  timetable TimetableEntry[]
 }
 
 model Category {
@@ -88,4 +90,30 @@ model ArticleBookmark {
   @@unique([articleId, userId])
   @@index([articleId])
   @@index([userId])
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  message   String
+  link      String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId, read])
+}
+
+model TimetableEntry {
+  id         Int      @id @default(autoincrement())
+  user       User     @relation(fields: [userId], references: [id])
+  userId     Int
+  title      String
+  dayOfWeek  Int      // 0 (일) ~ 6 (토)
+  startTime  String
+  endTime    String
+  memo       String?
+  createdAt  DateTime @default(now())
+
+  @@index([userId, dayOfWeek])
 }
