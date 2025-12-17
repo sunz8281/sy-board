@@ -44,27 +44,12 @@ export default function SearchPage() {
     } else {
       setResults([]);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    router.replace(`/search?q=${encodeURIComponent(query)}`);
-    runSearch(query);
-  };
 
   return (
     <AppLayout header leftSidebar rightSidebar>
       <section className="flex min-w-[400px] flex-1 flex-col gap-4">
-        <h1 className="text-xl font-bold text-gray-900">검색</h1>
-        <form onSubmit={handleSubmit} className="flex items-center gap-2">
-          <Input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="검색어를 입력하세요"
-            className="flex-1"
-          />
-        </form>
+        <h1 className="text-xl font-bold text-gray-900">검색결과: {query}</h1>
         {loading && <p className="text-sm text-gray-600">검색 중...</p>}
         {error && <p className="text-sm text-primary">{error}</p>}
         {!loading && !error &&
