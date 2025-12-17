@@ -337,26 +337,30 @@ export default function BoardDetailPage() {
               </div>
             </div>
           </div>
-          {!comment.deleted && comment.authorId === userId && (
+          {!comment.deleted && (
             <div className="flex items-center gap-2 text-xs">
-              <Button
-                size="small"
-                variant="outlined"
-                rounded
-                onClick={() => startEditComment(comment)}
-              >
-                수정
-              </Button>
-              <Button
-                size="small"
-                variant="outlined"
-                rounded
-                disabled={deletingCommentId === comment.id}
-                onClick={() => handleDeleteComment(comment.id)}
-                className="text-primary"
-              >
-                {deletingCommentId === comment.id ? "삭제중..." : "삭제"}
-              </Button>
+              {comment.authorId === userId && (
+                <>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    rounded
+                    onClick={() => startEditComment(comment)}
+                  >
+                    수정
+                  </Button>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    rounded
+                    disabled={deletingCommentId === comment.id}
+                    onClick={() => handleDeleteComment(comment.id)}
+                    className="text-primary"
+                  >
+                    {deletingCommentId === comment.id ? "삭제중..." : "삭제"}
+                  </Button>
+                </>
+              )}
               <Button
                 size="small"
                 variant="outlined"
