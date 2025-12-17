@@ -68,7 +68,7 @@ const RightSidebar = () => {
                 <div className="text-[16px] font-semibold text-blue">📈 실시간 인기 글</div>
                 <div className="mt-3 space-y-2 text-[14px] text-gray-800">
                     {popular.length === 0 && <p className="text-sm text-gray-500">불러오는 중...</p>}
-                    {popular.slice(0, 5).map((item) => (
+                    {popular.slice(0, 3).map((item) => (
                         <button
                             key={item.id}
                             className="block text-left hover:text-primary"
@@ -87,7 +87,7 @@ const RightSidebar = () => {
                 </div>
                 <div className="mt-3 space-y-3">
                     {hot.length === 0 && <p className="text-sm text-gray-500">불러오는 중...</p>}
-                    {hot.slice(0, 5).map((hotItem) => (
+                    {hot.slice(0, 3).map((hotItem) => (
                         <HotPostItem
                             key={`${hotItem.id}`}
                             title={hotItem.title}
