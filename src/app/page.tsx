@@ -95,7 +95,8 @@ export default function HomePage() {
             <section className="w-1/2 rounded-[20px] border border-[#e8e8e8] bg-white p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)] lg:p-8">
                 <div className="flex items-center justify-between">
                     <div>
-                        <div className="text-headline font-semibold text-[#666666]">Login</div>
+                        <div className="text-headline font-semibold text-[#1f1f1f]">학생 로그인</div>
+                        <p className="text-xs text-gray-500 mt-1">학교생활/진학 정보를 나누는 전용 게시판이에요.</p>
                     </div>
                     <Link href="/signup" className="text-xs text-primary underline">
                         회원가입
@@ -106,7 +107,7 @@ export default function HomePage() {
                     <Input
                         name="email"
                         label="이메일"
-                        placeholder="email@example.com"
+                        placeholder="학교/개인 이메일을 입력하세요"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         disabled={loading}

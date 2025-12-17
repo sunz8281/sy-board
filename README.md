@@ -1,11 +1,11 @@
 # SY Board
 
-> **배포 URL**: [배포된 서비스 URL]
-> **테스트 계정**: ID: `test@example.com` / PW: `test1234` (선택사항)
+> **배포 URL**: https://sy-board.onrender.com/
+> **테스트 계정**: ID: `test@example.com` / PW: `test1234`
 
 ## 📌 프로젝트 소개
 
-고등학생끼리 정보를 공유할 수 있는 게시판입니다. 
+정보를 공유할 수 있는 게시판입니다. 
 
 - **개발 기간**: 2024.12.1 ~ 2024.12.15
 - **개발 인원**: 1인
@@ -14,6 +14,13 @@
 | 문제점 | 개선 |
 | --- | --- |
 | 단순한 오류 처리로 예외 발생 시 일관된 HTTP 응답 코드가 전달되지 않음 (orElseThrow 사용) | 전역 예외 핸들링(Global Exception Handler)으로 비즈니스/유효성 오류를 4xx, 기타 예외를 5xx로 변환 |
+
+### 개선 결과
+
+- **개선 전**: 모든 예외가 500 에러로 반환되어 클라이언트가 원인 파악 불가
+- **개선 후**: 비즈니스 예외별로 적절한 HTTP 상태 코드(400, 404 등)와 명확한 에러 메시지 제공
+
+---
 
 ## ✨ 주요 기능
 - 회원가입 / 로그인 / 로그아웃 (`/api/auth/register`, `/api/auth/login`)
@@ -42,17 +49,46 @@ prisma/              # Prisma schema & migrations
 docker-compose.yml   # PostgreSQL 로컬 실행
 ```
 
-## 🔗 API 요약
-- 인증: `POST /api/auth/register`, `POST /api/auth/login` → 헤더 `x-user-id` 반환
-- 사용자: `GET /api/users/me` (필수 헤더 `x-user-id`)
-- 게시글: `GET /api/articles?category=`, `GET /api/articles/:id`, `POST /api/articles`, `PATCH /api/articles/:id`, `DELETE /api/articles/:id`
-- 반응: `POST /api/articles/:id/like`, `POST /api/articles/:id/bookmark` (헤더 `x-user-id`)
-- 댓글: `POST /api/comments`, `PATCH /api/comments/:id`, `DELETE /api/comments/:id`
+## 🔗 API 명세
+### 인증
+| Method | Endpoint | Description | 비고 |
+| --- | --- | --- | --- |
+| POST | `/api/auth/register` | 회원가입 | 응답 헤더 `x-user-id` 반환 |
+| POST | `/api/auth/login` | 로그인 | 응답 헤더 `x-user-id` 반환 |
+
+### 사용자
+| Method | Endpoint | Description | 비고 |
+| --- | --- | --- | --- |
+| GET | `/api/users/me` | 내 정보 조회 | 헤더 `x-user-id` 필수 |
+
+### 게시글
+| Method | Endpoint | Description | 비고 |
+| --- | --- | --- | --- |
+| GET | `/api/articles?category={id}` | 게시글 목록 조회 (카테고리 필터) | id 없으면 전체 |
+| GET | `/api/articles/{id}` | 게시글 상세 + 댓글 트리 + 좋아요/북마크 상태 | 헤더 `x-user-id` 선택 |
+| POST | `/api/articles` | 게시글 작성 | 헤더 `x-user-id` 필수 |
+| PATCH | `/api/articles/{id}` | 게시글 수정 | 작성자 + `x-user-id` 필수 |
+| DELETE | `/api/articles/{id}` | 게시글 삭제 | 작성자 + `x-user-id` 필수 |
+
+### 반응(좋아요/북마크)
+| Method | Endpoint | Description | 비고 |
+| --- | --- | --- | --- |
+| POST | `/api/articles/{id}/like` | 좋아요 토글 | 헤더 `x-user-id` 필수 |
+| POST | `/api/articles/{id}/bookmark` | 북마크 토글 | 헤더 `x-user-id` 필수 |
+
+### 댓글
+| Method | Endpoint | Description | 비고 |
+| --- | --- | --- | --- |
+| POST | `/api/comments` | 댓글/대댓글 작성 | `content`, `articleId`, `parentId?`, `x-user-id` |
+| PATCH | `/api/comments/{id}` | 댓글 수정 | 작성자 + `x-user-id` 필수 |
+| DELETE | `/api/comments/{id}` | 댓글 삭제 | 작성자 + `x-user-id` 필수 (자식 있으면 소프트 삭제) |
+
+
 
 ## 💻 로컬 실행
 1. 의존성 설치
 ```bash
-npm install
+bun install
 ```
 2. 환경 변수 (`.env`)
 ```
@@ -64,16 +100,10 @@ POSTGRES_DB=<DB>
 3. DB 준비
 ```bash
 docker-compose up -d db   # PostgreSQL 16
-npm run db:generate       # prisma generate
-npm run db:migrate        # prisma migrate dev
+bun run db:generate       # prisma generate
+bun run db:migrate        # prisma migrate dev
 ```
 4. 개발 서버
 ```bash
-npm run dev   # http://localhost:3000
+bun run dev   # http://localhost:3000
 ```
-
-## 🧩 스크립트
-- `npm run dev` / `build` / `start`
-- `npm run lint`, `npm run format`
-- `npm run storybook`, `npm run build-storybook`
-- `npm run db:generate`, `npm run db:migrate`
