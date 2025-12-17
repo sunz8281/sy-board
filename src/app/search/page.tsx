@@ -37,9 +37,15 @@ export default function SearchPage() {
   };
 
   useEffect(() => {
-    if (initialQ) runSearch(initialQ);
+    const current = searchParams.get("q") ?? "";
+    setQuery(current);
+    if (current) {
+      runSearch(current);
+    } else {
+      setResults([]);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [searchParams]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
