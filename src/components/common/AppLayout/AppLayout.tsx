@@ -1,6 +1,7 @@
 import LeftSidebar from "@comp/common/AppLayout/LeftSidebar/LeftSidebar";
 import Header from "@comp/common/AppLayout/Header/Header";
 import RightSidebar from "./RightSidebar/RightSidebar";
+import { Suspense } from "react";
 
 interface AppLayoutProps {
     children: React.ReactNode;
@@ -26,7 +27,9 @@ export const AppLayout = ({
                 )}
                 <main className="flex-1">{children}</main>
                 {rightSidebar && (
-                    <RightSidebar/>
+                    <Suspense fallback={null}>
+                        <RightSidebar/>
+                    </Suspense>
                 )}
             </div>
         </div>
