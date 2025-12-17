@@ -50,7 +50,6 @@ export default function MyPage() {
     { label: "내 글 모음", href: "/me/articles" },
     { label: "댓글 단 글", href: "/me/comments" },
     { label: "내 북마크", href: "/me/bookmarks" },
-    { label: "검색", href: "/search" },
   ];
 
   return (
