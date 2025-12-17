@@ -8,7 +8,6 @@ type PostCardProps = {
   category: string;
   author: string;
   postedAt: string;
-  views: number;
   likes: number;
   favorites: number;
 };
@@ -21,7 +20,6 @@ export function PostCard({
   category,
   author,
   postedAt,
-  views,
   likes,
   favorites,
 }: PostCardProps) {
@@ -44,7 +42,6 @@ export function PostCard({
           </span>
         </div>
         <div className="flex items-center gap-3 text-[12px] text-[#999999]">
-          <span>👁 {views}</span>
           <span>👍 {likes}</span>
           <span>⭐️ {favorites}</span>
         </div>

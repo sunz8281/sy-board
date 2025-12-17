@@ -39,9 +39,11 @@ export default function BoardPage() {
         }
         const data = await res.json();
         setArticles(data);
-      } catch (err: any) {
-        if (err.name === "AbortError") return;
-        setError(err.message ?? "게시글을 불러오지 못했습니다.");
+      } catch (err: unknown) {
+          if (err instanceof Error) {
+              if (err.name === "AbortError") return;
+              setError(err.message ?? "게시글을 불러오지 못했습니다.");
+          }
       } finally {
         setLoading(false);
       }
@@ -68,7 +70,6 @@ export default function BoardPage() {
               category={post.category?.name ?? ""}
               author={post.author ?? "익명"}
               postedAt={formatDateDot(new Date(post.createdAt))}
-              views={0}
               likes={post.likesCount ?? 0}
               favorites={post.bookmarksCount ?? 0}
             />

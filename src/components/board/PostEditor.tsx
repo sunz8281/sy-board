@@ -52,9 +52,11 @@ export function PostEditor({ mode, activeCategory = 0, initialContent, initialTi
         if (!res.ok) throw new Error(`카테고리를 불러오지 못했습니다. (${res.status})`);
         const data = await res.json();
         setCategories(data);
-      } catch (err: any) {
-        if (err.name === "AbortError") return;
-        setCatError(err.message ?? "카테고리를 불러오지 못했습니다.");
+      } catch (err: unknown ) {
+          if(err instanceof Error) {
+              if (err.name === "AbortError") return;
+              setCatError(err.message ?? "카테고리를 불러오지 못했습니다.");
+          }
       } finally {
         setCatLoading(false);
       }
@@ -71,8 +73,7 @@ export function PostEditor({ mode, activeCategory = 0, initialContent, initialTi
     if (resolved) {
       setUserId(resolved);
     } else {
-      window.localStorage.setItem("userId", "1");
-      setUserId(1);
+        router.push("/");
     }
   }, []);
 
@@ -113,8 +114,8 @@ export function PostEditor({ mode, activeCategory = 0, initialContent, initialTi
         const created = await res.json();
         router.push(`/board/article/${created.id ?? ""}`);
       }
-    } catch (err: any) {
-      setSubmitError(err.message ?? "요청에 실패했습니다.");
+    } catch (err: unknown) {
+        if(err instanceof Error) setSubmitError(err.message ?? "요청에 실패했습니다.");
     } finally {
       setSubmitting(false);
     }

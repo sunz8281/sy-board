@@ -33,9 +33,10 @@ const LeftSidebar = ({activeCategory = 0}: LeftSidebarProps ) => {
                 if (!res.ok) throw new Error(`카테고리를 불러오지 못했습니다. (${res.status})`);
                 const data = await res.json();
                 setCategories(data);
-            } catch (err: any) {
-                if (err.name === "AbortError") return;
-                setError(err.message ?? "카테고리를 불러오지 못했습니다.");
+            } catch (err: unknown) {
+                if (err instanceof Error && err.name === "AbortError") return;
+                const message = err instanceof Error ? err.message : "카테고리를 불러오지 못했습니다.";
+                setError(message);
             }
         };
         fetchCategories();
@@ -48,10 +49,8 @@ const LeftSidebar = ({activeCategory = 0}: LeftSidebarProps ) => {
             setUserError(null);
             try {
                 const stored = typeof window !== "undefined" ? window.localStorage.getItem("userId") : null;
-                const resolvedUserId = stored ? Number(stored) : 1;
-                if (typeof window !== "undefined" && !stored) {
-                    window.localStorage.setItem("userId", String(resolvedUserId));
-                }
+                if (!stored) router.push('/');
+                const resolvedUserId = Number(stored);
                 setUserId(resolvedUserId);
 
                 const res = await fetch("/api/users/me", {
@@ -64,14 +63,26 @@ const LeftSidebar = ({activeCategory = 0}: LeftSidebarProps ) => {
                     setUserName(data.name ?? data.email ?? "사용자");
                     setUserInfo(data.email ?? "");
                 }
-            } catch (err: any) {
-                if (err.name === "AbortError") return;
-                setUserError(err.message ?? "사용자 정보를 불러오지 못했습니다.");
+            } catch (err: unknown) {
+                if (err instanceof Error && err.name === "AbortError") return;
+                const message = err instanceof Error ? err.message : "사용자 정보를 불러오지 못했습니다.";
+                setUserError(message);
             }
         };
         fetchUser();
         return () => controller.abort();
     }, []);
+
+    const handleLogout = () => {
+        if (typeof window !== "undefined") {
+            window.localStorage.removeItem("userId");
+            window.localStorage.removeItem("userName");
+        }
+        setUserId(null);
+        setUserName("사용자");
+        setUserInfo("");
+        router.push("/");
+    };
 
     const isActive = (id: number) => activeCategory===id
 
@@ -88,7 +99,7 @@ const LeftSidebar = ({activeCategory = 0}: LeftSidebarProps ) => {
                     <Button variant="grayscale" size="small" rounded={false} className="w-full">
                         내 정보
                     </Button>
-                    <Button variant="outlined" size="small" rounded={false} className="w-full">
+                    <Button variant="outlined" size="small" rounded={false} className="w-full" onClick={handleLogout}>
                         로그아웃
                     </Button>
                 </div>
