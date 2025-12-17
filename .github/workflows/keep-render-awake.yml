@@ -1,0 +1,12 @@
+name: Keep Render App Awake
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+
+jobs:
+  keep_alive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Render app
+        run: curl -s https://bitcoinauto.onrender.com/api/health > /dev/null
