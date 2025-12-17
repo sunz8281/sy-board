@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { IconBell, IconUser } from "@/icons";
 
 type NavItem = {
@@ -15,6 +15,7 @@ const navItems: NavItem[] = [
 
 export const Header = () => {
   const pathname = usePathname();
+  const router = useRouter();
 
   const isActive = (href: string) => {
     if (href === "/") {
@@ -44,10 +45,10 @@ export const Header = () => {
           </nav>
         </div>
         <div className="flex items-center gap-3 text-white">
-          <button className="p-2" aria-label="Notifications">
+          <button className="p-2" aria-label="Notifications" onClick={() => router.push("/notifications")}>
             <IconBell className="h-5 w-5" />
           </button>
-          <button className="p-2" aria-label="Profile">
+          <button className="p-2" aria-label="Profile" onClick={() => router.push("/me")}>
             <IconUser className="h-6 w-6" />
           </button>
         </div>

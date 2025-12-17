@@ -6,9 +6,9 @@ import {useRouter} from "next/navigation";
 import { useEffect, useState } from "react";
 
 const quickMenus = [
-    { label: "내 글 모음" },
-    { label: "댓글 단 글" },
-    { label: "내 북마크" },
+    { label: "내 글 모음", href: "/me/articles" },
+    { label: "댓글 단 글", href: "/me/comments" },
+    { label: "내 북마크", href: "/me/bookmarks" },
 ];
 
 interface LeftSidebarProps {
@@ -108,7 +108,7 @@ const LeftSidebar = ({activeCategory = 0}: LeftSidebarProps ) => {
             <div className="rounded-[16px] border border-gray-200 bg-white">
                 <ul className="divide-y divide-gray-100">
                     {quickMenus.map((item) => (
-                        <li key={item.label} className="flex items-center gap-2 px-4 py-3 text-sm text-gray-600">
+                        <li key={item.label} className="flex items-center gap-2 px-4 py-3 text-sm text-gray-600 hover:text-primary hover:bg-gray-50 cursor-pointer" onClick={() => router.push(item.href)}>
                             <IconChat className="w-5 h-5" />
                             {item.label}
                         </li>
