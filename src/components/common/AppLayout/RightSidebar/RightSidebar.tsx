@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Input from "@comp/common/Input/Input";
 import { HotPostItem } from "@comp/board/HotPostItem";
 import { formatDateDot } from "@utils/formatDate";
@@ -15,6 +15,7 @@ type SimplePost = {
 
 const RightSidebar = () => {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const [search, setSearch] = useState("");
     const [popular, setPopular] = useState<SimplePost[]>([]);
     const [hot, setHot] = useState<SimplePost[]>([]);
@@ -39,6 +40,11 @@ const RightSidebar = () => {
         fetchPopular();
         fetchHot();
     }, []);
+
+    useEffect(() => {
+        const current = searchParams.get("q") ?? "";
+        setSearch(current);
+    }, [searchParams]);
 
     const handleSearchSubmit = (e: React.FormEvent) => {
         e.preventDefault();
