@@ -45,12 +45,7 @@ export const Header = () => {
           </nav>
         </div>
         <div className="flex items-center gap-3 text-white">
-          <button className="p-2" aria-label="Notifications" onClick={() => router.push("/notifications")}>
-            <IconBell className="h-5 w-5" />
-          </button>
-          <button className="p-2" aria-label="Profile" onClick={() => router.push("/me")}>
-            <IconUser className="h-6 w-6" />
-          </button>
+          <IconUser className="h-6 w-6 cursor-pointer" onClick={() => router.push("/me")} />
         </div>
       </div>
     </header>

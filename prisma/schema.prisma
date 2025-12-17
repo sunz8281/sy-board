@@ -17,7 +17,6 @@ model User {
   comments  Comment[]
   likes     ArticleLike[]
   bookmarks ArticleBookmark[]
-  notifications Notification[]
 }
 
 model Category {
@@ -91,14 +90,4 @@ model ArticleBookmark {
   @@index([userId])
 }
 
-model Notification {
-  id        Int      @id @default(autoincrement())
-  user      User     @relation(fields: [userId], references: [id])
-  userId    Int
-  message   String
-  link      String?
-  read      Boolean  @default(false)
-  createdAt DateTime @default(now())
-
-  @@index([userId, read])
-}
+// Notification 모델 제거

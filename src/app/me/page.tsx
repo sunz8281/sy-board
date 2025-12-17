@@ -50,7 +50,6 @@ export default function MyPage() {
     { label: "내 글 모음", href: "/me/articles" },
     { label: "댓글 단 글", href: "/me/comments" },
     { label: "내 북마크", href: "/me/bookmarks" },
-    { label: "알림", href: "/notifications" },
     { label: "검색", href: "/search" },
   ];
 
@@ -61,7 +60,6 @@ export default function MyPage() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-xl font-bold text-gray-900">내 정보</h1>
-              <p className="text-sm text-gray-600">고등학생 전용 커뮤니티 계정입니다.</p>
             </div>
           </div>
           <div className="mt-4 space-y-2 text-sm text-gray-700">
