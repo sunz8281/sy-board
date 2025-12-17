@@ -96,7 +96,7 @@ const LeftSidebar = ({activeCategory = 0}: LeftSidebarProps ) => {
                     {userError && <div className="mt-1 text-[11px] text-primary">{userError}</div>}
                 </div>
                 <div className="mt-4 grid grid-cols-2 gap-2">
-                    <Button variant="grayscale" size="small" rounded={false} className="w-full">
+                    <Button variant="grayscale" size="small" rounded={false} className="w-full" onClick={()=>router.push("/me")}>
                         내 정보
                     </Button>
                     <Button variant="outlined" size="small" rounded={false} className="w-full" onClick={handleLogout}>

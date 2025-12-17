@@ -1,10 +1,10 @@
-\"use client\";
+"use client";
 
-import { useEffect, useState } from \"react\";
-import { useRouter } from \"next/navigation\";
-import Input from \"@comp/common/Input/Input\";
-import { HotPostItem } from \"@comp/board/HotPostItem\";
-import { formatDateDot } from \"@utils/formatDate\";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import Input from "@comp/common/Input/Input";
+import { HotPostItem } from "@comp/board/HotPostItem";
+import { formatDateDot } from "@utils/formatDate";
 
 type SimplePost = {
     id: number;
@@ -15,14 +15,14 @@ type SimplePost = {
 
 const RightSidebar = () => {
     const router = useRouter();
-    const [search, setSearch] = useState(\"\");
+    const [search, setSearch] = useState("");
     const [popular, setPopular] = useState<SimplePost[]>([]);
     const [hot, setHot] = useState<SimplePost[]>([]);
 
     useEffect(() => {
         const fetchPopular = async () => {
             try {
-                const res = await fetch(\"/api/articles/popular\");
+                const res = await fetch("/api/articles/popular");
                 if (res.ok) setPopular(await res.json());
             } catch {
                 // ignore
@@ -30,7 +30,7 @@ const RightSidebar = () => {
         };
         const fetchHot = async () => {
             try {
-                const res = await fetch(\"/api/articles/hot\");
+                const res = await fetch("/api/articles/hot");
                 if (res.ok) setHot(await res.json());
             } catch {
                 // ignore
@@ -51,7 +51,7 @@ const RightSidebar = () => {
             <form onSubmit={handleSearchSubmit}>
                 <Input
                     className="h-[43px] py-[12px]"
-                    placeholder="학교생활/진학 정보를 검색해요"
+                    placeholder="게시글을 검색해요"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     rightIcon={<span aria-hidden>🔍</span>}
@@ -77,7 +77,7 @@ const RightSidebar = () => {
             <div className="rounded-[16px] border border-gray-300 bg-white p-4">
                 <div className="flex items-center justify-between">
                     <div className="text-[16px] font-semibold text-primary">HOT 게시물</div>
-                    <button className="text-[12px] text-gray-500" onClick={() => router.push(\"/search?q=hot\")}>전체 &gt;</button>
+                    <button className="text-[12px] text-gray-500" onClick={() => router.push("/search?q=hot")}>전체 &gt;</button>
                 </div>
                 <div className="mt-3 space-y-3">
                     {hot.length === 0 && <p className="text-sm text-gray-500">불러오는 중...</p>}
