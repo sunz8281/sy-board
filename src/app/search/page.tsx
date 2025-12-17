@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { AppLayout } from "@comp/common/AppLayout/AppLayout";
 import Input from "@comp/common/Input/Input";
 import { PostCard } from "@comp/board/PostCard";
 import { formatDateDot } from "@utils/formatDate";
 
-export default function SearchPage() {
+function SearchBody() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const initialQ = searchParams.get("q") ?? "";
@@ -44,31 +44,54 @@ export default function SearchPage() {
     } else {
       setResults([]);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    router.replace(`/search?q=${encodeURIComponent(query)}`);
+    runSearch(query);
+  };
+
+  return (
+    <section className="flex min-w-[400px] flex-1 flex-col gap-4">
+      <h1 className="text-xl font-bold text-gray-900">검색</h1>
+      <form onSubmit={handleSubmit} className="flex items-center gap-2">
+        <Input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="검색어를 입력하세요"
+          className="flex-1"
+        />
+      </form>
+      {loading && <p className="text-sm text-gray-600">검색 중...</p>}
+      {error && <p className="text-sm text-primary">{error}</p>}
+      {!loading && !error &&
+        results.map((post) => (
+          <PostCard
+            key={post.id}
+            id={post.id}
+            title={post.title}
+            commentCount={post.commentsCount ?? 0}
+            preview={post.content ?? ""}
+            category={post.category?.name ?? ""}
+            author={post.author ?? "익명"}
+            postedAt={formatDateDot(new Date(post.createdAt))}
+            likes={post.likesCount ?? 0}
+            favorites={post.bookmarksCount ?? 0}
+          />
+        ))}
+      {!loading && results.length === 0 && query && <p className="text-sm text-gray-500">검색 결과가 없습니다.</p>}
+    </section>
+  );
+}
+
+export default function SearchPage() {
   return (
     <AppLayout header leftSidebar rightSidebar>
-      <section className="flex min-w-[400px] flex-1 flex-col gap-4">
-        <h1 className="text-xl font-bold text-gray-900">검색결과: {query}</h1>
-        {loading && <p className="text-sm text-gray-600">검색 중...</p>}
-        {error && <p className="text-sm text-primary">{error}</p>}
-        {!loading && !error &&
-          results.map((post) => (
-            <PostCard
-              key={post.id}
-              id={post.id}
-              title={post.title}
-              commentCount={post.commentsCount ?? 0}
-              preview={post.content ?? ""}
-              category={post.category?.name ?? ""}
-              author={post.author ?? "익명"}
-              postedAt={formatDateDot(new Date(post.createdAt))}
-              likes={post.likesCount ?? 0}
-              favorites={post.bookmarksCount ?? 0}
-            />
-          ))}
-        {!loading && results.length === 0 && query && <p className="text-sm text-gray-500">검색 결과가 없습니다.</p>}
-      </section>
+      <Suspense fallback={<div className="text-sm text-gray-600">검색 준비 중...</div>}>
+        <SearchBody />
+      </Suspense>
     </AppLayout>
   );
 }
