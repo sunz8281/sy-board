@@ -107,3 +107,8 @@ bun run db:migrate        # prisma migrate dev
 ```bash
 bun run dev   # http://localhost:3000
 ```
+---
+
+## 🎥 시연 영상
+
+https://youtu.be/4t7ttZQZK-E
